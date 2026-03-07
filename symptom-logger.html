@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Symptom Log">
+<meta name="theme-color" content="#0a0e14">
+<title>Daily Symptom Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e14;
+  --panel: #111620;
+  --panel2: #161c28;
+  --border: #1e2736;
+  --border2: #253044;
+  --text: #c8d4e8;
+  --text-dim: #4a5a72;
+  --text-mid: #7a8fa8;
+  --accent: #3b82f6;
+  --accent2: #1d4ed8;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+.header {
+  padding: 52px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(10,14,20,0.95) 0%, transparent 100%);
+}
+
+.header-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+}
+
+.header-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.log-count {
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-align: right;
+}
+
+.log-count-num {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--green);
+  line-height: 1;
+}
+
+.log-count-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── TABS ── */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  margin-bottom: -1px;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── LOG FORM ── */
+.form-section {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 80px;
+}
+
+.field-group {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.field-header {
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.field-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Slider scale */
+.scale-container {
+  padding: 14px 16px 16px;
+}
+
+.scale-track {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.scale-pip {
+  flex: 1;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--panel2);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  position: relative;
+}
+
+.scale-pip::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  border-radius: 5px 5px 0 0;
+  transition: height 0.2s;
+}
+
+.scale-pip.selected {
+  border-color: transparent;
+  color: #fff;
+}
+
+/* color states */
+.scale-pip[data-val="1"].selected, .scale-pip[data-val="2"].selected { background: #10b981; }
+.scale-pip[data-val="3"].selected, .scale-pip[data-val="4"].selected { background: #84cc16; }
+.scale-pip[data-val="5"].selected { background: #eab308; }
+.scale-pip[data-val="6"].selected, .scale-pip[data-val="7"].selected { background: #f97316; }
+.scale-pip[data-val="8"].selected, .scale-pip[data-val="9"].selected { background: #ef4444; }
+.scale-pip[data-val="10"].selected { background: #991b1b; }
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+/* Toggle row */
+.toggle-grid {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.toggle-btn {
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn.on {
+  background: rgba(59,130,246,0.12);
+  border-color: var(--accent);
+}
+
+.toggle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border2);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.toggle-btn.on .toggle-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+.toggle-label {
+  font-size: 12px;
+  color: var(--text-mid);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.toggle-btn.on .toggle-label { color: var(--text); }
+
+/* Textarea */
+.notes-field {
+  padding: 14px 16px;
+}
+
+.notes-input {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 400;
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+  min-height: 80px;
+}
+
+.notes-input::placeholder { color: var(--text-dim); }
+
+/* Submit */
+.submit-btn {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 15px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.submit-btn:active { transform: scale(0.98); background: var(--accent2); }
+
+/* ── HISTORY VIEW ── */
+.history-section {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 80px;
+}
+
+.history-day {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.history-day-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-day-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+
+.history-day-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.history-metrics {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.history-metric {
+  text-align: center;
+}
+
+.history-metric-val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.history-metric-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.history-tags {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.history-tag {
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.history-note {
+  padding: 0 16px 12px;
+  font-size: 12px;
+  color: var(--text-mid);
+  font-style: italic;
+  line-height: 1.5;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+/* ── EXPORT VIEW ── */
+.export-section {
+  padding: 20px;
+  padding-bottom: 80px;
+}
+
+.export-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.export-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  margin-bottom: 8px;
+}
+
+.export-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.export-stat:last-child { border-bottom: none; }
+
+.export-stat-label { color: var(--text-mid); }
+.export-stat-value { font-family: var(--mono); font-weight: 600; color: var(--text); }
+
+.export-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
+}
+
+.export-btn:hover, .export-btn:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.export-disclaimer {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  text-align: center;
+  margin-top: 12px;
+  padding: 0 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-dim);
+}
+
+.empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state-text { font-size: 13px; line-height: 1.6; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green);
+  color: #000;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: 99px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Streak bar */
+.streak-bar {
+  padding: 12px 20px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.streak-bar::-webkit-scrollbar { display: none; }
+
+.streak-day {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text-dim);
+}
+
+.streak-day.logged { background: var(--accent); border-color: var(--accent); color: #fff; }
+.streak-day.today { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-row">
+    <div>
+      <div class="header-eyebrow">SSA Evidence Log</div>
+      <div class="header-title">Daily Symptom Log</div>
+      <div class="header-date" id="hDate"></div>
+    </div>
+    <div class="log-count">
+      <div class="log-count-num" id="logCountNum">0</div>
+      <div class="log-count-label">Days Logged</div>
+    </div>
+  </div>
+</div>
+
+<!-- Streak -->
+<div class="streak-bar" id="streakBar"></div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="setTab('log', this)">Log Today</button>
+  <button class="tab-btn" onclick="setTab('history', this)">History</button>
+  <button class="tab-btn" onclick="setTab('export', this)">Export</button>
+</div>
+
+<!-- Views -->
+<div id="view-log">
+<div class="form-section">
+
+  <!-- Pain -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">🔴 Pain Level</div>
+      <div class="field-value" id="painVal">—</div>
+    </div>
+    <div class="scale-container">
+      <div class="scale-track" id="painTrack"></div>
+      <div class="scale-labels"><span>None</span><span>Moderate</span><span>Severe</span></div>
+    </div>
+  </div>
+
+  <!-- Energy -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">⚡ Energy Level</div>
+      <div class="field-value" id="energyVal">—</div>
+    </div>
+    <div class="scale-container">
+      <div class="scale-track" id="energyTrack"></div>
+      <div class="scale-labels"><span>Bedbound</span><span>Limited</span><span>Full</span></div>
+    </div>
+  </div>
+
+  <!-- Brain fog -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">🧠 Brain Fog</div>
+      <div class="field-value" id="fogVal">—</div>
+    </div>
+    <div class="scale-container">
+      <div class="scale-track" id="fogTrack"></div>
+      <div class="scale-labels"><span>None</span><span>Moderate</span><span>Severe</span></div>
+    </div>
+  </div>
+
+  <!-- Mood -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">💭 Mood</div>
+      <div class="field-value" id="moodVal">—</div>
+    </div>
+    <div class="scale-container">
+      <div class="scale-track" id="moodTrack"></div>
+      <div class="scale-labels"><span>Crisis</span><span>Struggling</span><span>Stable</span></div>
+    </div>
+  </div>
+
+  <!-- POTS / Orthostatic symptoms -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">🫀 POTS / Symptoms Present</div>
+    </div>
+    <div class="toggle-grid">
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Dizziness/Lightheaded')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Dizziness / Lightheaded</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Heart Racing')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Heart Racing</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Arm/Neck Pain')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Arm / Neck Pain</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Joint Pain')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Joint Pain</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Nausea')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Nausea</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Fainting/Near-Faint')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Faint / Near-Faint</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Sensory Overload')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Sensory Overload</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'RSD Episode')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">RSD Episode</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Anxiety/Panic')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Anxiety / Panic</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Could Not Leave Home')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Could Not Leave Home</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Trigger Finger/Carpal')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Hand Pain / Carpal</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleSymptom(this, 'Sleep Disrupted')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Sleep Disrupted</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activities -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">✅ Able to Do Today</div>
+    </div>
+    <div class="toggle-grid">
+      <div class="toggle-btn" onclick="toggleActivity(this, 'Dressed Self')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Dressed Self</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleActivity(this, 'Prepared Food')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Prepared Food</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleActivity(this, 'Left Home')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Left Home</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleActivity(this, 'Drove Car')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Drove Car</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleActivity(this, 'Walked Micco')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Walked Micco 🐕</div>
+      </div>
+      <div class="toggle-btn" onclick="toggleActivity(this, 'Completed Chore')">
+        <div class="toggle-dot"></div>
+        <div class="toggle-label">Completed Chore</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="field-group">
+    <div class="field-header">
+      <div class="field-label">📝 Notes</div>
+    </div>
+    <div class="notes-field">
+      <textarea class="notes-input" id="notesInput" placeholder="Any notable events, triggers, medications taken, how you're feeling overall..." rows="4"></textarea>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="saveLog()">
+    ⬇ Save Today's Log
+  </button>
+
+</div>
+</div>
+
+<div id="view-history" style="display:none">
+  <div class="history-section" id="historyList"></div>
+</div>
+
+<div id="view-export" style="display:none">
+  <div class="export-section" id="exportSection"></div>
+</div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast">Saved ✓</div>
+
+<script>
+const KEY = 'symptomlog_v2';
+const now = new Date();
+const TODAY_STR = now.toISOString().split('T')[0];
+
+let state = { logs: [] };
+let scores = { pain: null, energy: null, fog: null, mood: null };
+let symptoms = [];
+let activities = [];
+let currentTab = 'log';
+
+function load() {
+  try {
+    const d = localStorage.getItem(KEY);
+    if (d) state = JSON.parse(d);
+  } catch(_) {}
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(_) {}
+}
+
+function buildScale(trackId, key, displayId) {
+  const track = document.getElementById(trackId);
+  track.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'scale-pip';
+    pip.dataset.val = i;
+    pip.textContent = i;
+    pip.onclick = () => {
+      track.querySelectorAll('.scale-pip').forEach(p => p.classList.remove('selected'));
+      pip.classList.add('selected');
+      scores[key] = i;
+      document.getElementById(displayId).textContent = i + '/10';
+    };
+    track.appendChild(pip);
+  }
+}
+
+function toggleSymptom(el, name) {
+  el.classList.toggle('on');
+  if (el.classList.contains('on')) {
+    symptoms.push(name);
+  } else {
+    symptoms = symptoms.filter(s => s !== name);
+  }
+}
+
+function toggleActivity(el, name) {
+  el.classList.toggle('on');
+  if (el.classList.contains('on')) {
+    activities.push(name);
+  } else {
+    activities = activities.filter(a => a !== name);
+  }
+}
+
+function saveLog() {
+  if (scores.pain === null && scores.energy === null) {
+    showToast('Rate at least pain + energy', '#f59e0b');
+    return;
+  }
+
+  const existing = state.logs.findIndex(l => l.date === TODAY_STR);
+  const entry = {
+    date: TODAY_STR,
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    pain: scores.pain,
+    energy: scores.energy,
+    fog: scores.fog,
+    mood: scores.mood,
+    symptoms: [...symptoms],
+    activities: [...activities],
+    notes: document.getElementById('notesInput').value.trim(),
+  };
+
+  if (existing >= 0) {
+    state.logs[existing] = entry;
+  } else {
+    state.logs.unshift(entry);
+  }
+
+  save();
+  showToast('Logged ✓', '#10b981');
+  renderStreak();
+  renderHeader();
+}
+
+function showToast(msg, color = '#10b981') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.style.color = color === '#f59e0b' ? '#000' : '#000';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['log', 'history', 'export'].forEach(v => {
+    document.getElementById('view-' + v).style.display = v === tab ? 'block' : 'none';
+  });
+  if (tab === 'history') renderHistory();
+  if (tab === 'export') renderExport();
+}
+
+function renderHeader() {
+  document.getElementById('hDate').textContent = now.toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  document.getElementById('logCountNum').textContent = state.logs.length;
+}
+
+function renderStreak() {
+  const bar = document.getElementById('streakBar');
+  bar.innerHTML = '';
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    const logged = state.logs.some(l => l.date === ds);
+    const isToday = ds === TODAY_STR;
+    const el = document.createElement('div');
+    el.className = `streak-day ${logged ? 'logged' : ''} ${isToday && !logged ? 'today' : ''}`;
+    el.textContent = d.getDate();
+    bar.appendChild(el);
+  }
+}
+
+function scoreColor(v) {
+  if (!v) return '#4a5a72';
+  if (v <= 2) return '#10b981';
+  if (v <= 4) return '#84cc16';
+  if (v <= 5) return '#eab308';
+  if (v <= 7) return '#f97316';
+  if (v <= 9) return '#ef4444';
+  return '#991b1b';
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  if (!state.logs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No logs yet.<br>Log your first day to start building your SSA evidence record.</div></div>`;
+    return;
+  }
+  el.innerHTML = state.logs.map(log => `
+    <div class="history-day">
+      <div class="history-day-header">
+        <div class="history-day-date">${formatDate(log.date)}</div>
+        <div class="history-day-time">${log.time || ''}</div>
+      </div>
+      <div class="history-metrics">
+        <div class="history-metric">
+          <div class="history-metric-val" style="color:${scoreColor(log.pain)}">${log.pain ?? '—'}</div>
+          <div class="history-metric-label">Pain</div>
+        </div>
+        <div class="history-metric">
+          <div class="history-metric-val" style="color:${scoreColor(11 - (log.energy || 0))}">${log.energy ?? '—'}</div>
+          <div class="history-metric-label">Energy</div>
+        </div>
+        <div class="history-metric">
+          <div class="history-metric-val" style="color:${scoreColor(log.fog)}">${log.fog ?? '—'}</div>
+          <div class="history-metric-label">Brain Fog</div>
+        </div>
+      </div>
+      ${log.symptoms?.length ? `<div class="history-tags">${log.symptoms.map(s => `<span class="history-tag">${s}</span>`).join('')}</div>` : ''}
+      ${log.notes ? `<div class="history-note">"${log.notes}"</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderExport() {
+  const el = document.getElementById('exportSection');
+  if (!state.logs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📤</div><div class="empty-state-text">No data to export yet.<br>Log at least one day first.</div></div>`;
+    return;
+  }
+  const avgPain = avg(state.logs.map(l => l.pain).filter(Boolean));
+  const avgEnergy = avg(state.logs.map(l => l.energy).filter(Boolean));
+  const avgFog = avg(state.logs.map(l => l.fog).filter(Boolean));
+  const symptomCounts = {};
+  state.logs.forEach(l => (l.symptoms || []).forEach(s => symptomCounts[s] = (symptomCounts[s] || 0) + 1));
+  const topSymptoms = Object.entries(symptomCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const cantLeave = state.logs.filter(l => (l.symptoms||[]).includes('Could Not Leave Home')).length;
+
+  el.innerHTML = `
+    <div class="export-card">
+      <div class="export-title">Summary — ${state.logs.length} Days</div>
+      <div class="export-stat"><span class="export-stat-label">Avg Pain Level</span><span class="export-stat-value">${avgPain}/10</span></div>
+      <div class="export-stat"><span class="export-stat-label">Avg Energy Level</span><span class="export-stat-value">${avgEnergy}/10</span></div>
+      <div class="export-stat"><span class="export-stat-label">Avg Brain Fog</span><span class="export-stat-value">${avgFog}/10</span></div>
+      <div class="export-stat"><span class="export-stat-label">Days Could Not Leave Home</span><span class="export-stat-value" style="color:var(--red)">${cantLeave}</span></div>
+    </div>
+    <div class="export-card">
+      <div class="export-title">Most Frequent Symptoms</div>
+      ${topSymptoms.map(([s,c]) => `<div class="export-stat"><span class="export-stat-label">${s}</span><span class="export-stat-value">${c} days</span></div>`).join('')}
+    </div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Export as CSV (for SSA / Doctor)</button>
+    <button class="export-btn" onclick="exportText()">📋 Copy as Plain Text</button>
+    <div class="export-disclaimer">This data is stored only on your device. Export regularly and send to your disability attorney or doctor. Each entry is timestamped evidence for your SSA case.</div>
+  `;
+}
+
+function avg(arr) {
+  if (!arr.length) return '—';
+  return (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(1);
+}
+
+function formatDate(ds) {
+  const d = new Date(ds + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function exportCSV() {
+  const headers = ['Date','Time','Pain','Energy','BrainFog','Mood','Symptoms','Activities','Notes'];
+  const rows = state.logs.map(l => [
+    l.date, l.time || '', l.pain || '', l.energy || '', l.fog || '', l.mood || '',
+    (l.symptoms || []).join('; '),
+    (l.activities || []).join('; '),
+    (l.notes || '').replace(/,/g, ';')
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `symptom-log-${TODAY_STR}.csv`;
+  a.click();
+}
+
+function exportText() {
+  const lines = ['DAILY SYMPTOM LOG — SSA EVIDENCE RECORD', '=' .repeat(40), ''];
+  state.logs.forEach(l => {
+    lines.push(`DATE: ${formatDate(l.date)} at ${l.time || 'unknown'}`);
+    lines.push(`Pain: ${l.pain ?? '—'}/10 | Energy: ${l.energy ?? '—'}/10 | Brain Fog: ${l.fog ?? '—'}/10 | Mood: ${l.mood ?? '—'}/10`);
+    if (l.symptoms?.length) lines.push(`Symptoms: ${l.symptoms.join(', ')}`);
+    if (l.activities?.length) lines.push(`Able to do: ${l.activities.join(', ')}`);
+    if (l.notes) lines.push(`Notes: ${l.notes}`);
+    lines.push('');
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied!'));
+}
+
+// Init
+load();
+buildScale('painTrack', 'pain', 'painVal');
+buildScale('energyTrack', 'energy', 'energyVal');
+buildScale('fogTrack', 'fog', 'fogVal');
+buildScale('moodTrack', 'mood', 'moodVal');
+renderHeader();
+renderStreak();
+</script>
+</body>
+</html>

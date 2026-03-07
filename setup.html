@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="App Hub">
+<meta name="theme-color" content="#0d1117">
+<title>App Hub — Setup & Sync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel2: #1c2128;
+  --border: #21262d;
+  --border2: #30363d;
+  --text: #e6edf3;
+  --text-dim: #484f58;
+  --text-mid: #8b949e;
+  --green: #3fb950;
+  --green-dim: rgba(63,185,80,0.1);
+  --blue: #58a6ff;
+  --blue-dim: rgba(88,166,255,0.1);
+  --amber: #d29922;
+  --amber-dim: rgba(210,153,34,0.12);
+  --red: #f85149;
+  --red-dim: rgba(248,81,73,0.1);
+  --purple: #bc8cff;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Sora', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* Starfield bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(88,166,255,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(63,185,80,0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.app { position: relative; z-index: 1; padding-bottom: 40px; }
+
+/* Header */
+.header {
+  padding: 56px 22px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-logo {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--blue), var(--green));
+  border-radius: 16px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.header-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+/* Sync status banner */
+.sync-banner {
+  margin: 20px 22px 0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid;
+  transition: all 0.3s;
+}
+
+.sync-banner.connected {
+  background: var(--green-dim);
+  border-color: rgba(63,185,80,0.3);
+}
+
+.sync-banner.disconnected {
+  background: var(--amber-dim);
+  border-color: rgba(210,153,34,0.3);
+}
+
+.sync-banner.error {
+  background: var(--red-dim);
+  border-color: rgba(248,81,73,0.3);
+}
+
+.sync-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connected .sync-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.disconnected .sync-dot { background: var(--amber); }
+.error .sync-dot { background: var(--red); }
+
+.sync-text { font-size: 13px; font-weight: 500; }
+.connected .sync-text { color: var(--green); }
+.disconnected .sync-text { color: var(--amber); }
+.error .sync-text { color: var(--red); }
+
+.sync-sub { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+/* Setup card */
+.setup-card {
+  margin: 20px 22px 0;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.setup-card-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setup-card-icon { font-size: 18px; }
+
+.setup-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.setup-card-body { padding: 18px 20px; }
+
+.field-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.token-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.token-input {
+  flex: 1;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  min-width: 0;
+}
+
+.token-input:focus { border-color: var(--blue); }
+.token-input::placeholder { color: var(--text-dim); }
+
+.toggle-vis {
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.repo-input {
+  width: 100%;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  margin-bottom: 16px;
+}
+
+.repo-input:focus { border-color: var(--blue); }
+
+.save-btn {
+  width: 100%;
+  background: var(--blue);
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.save-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+.clear-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--red);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.15s;
+}
+
+.setup-help {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--panel2);
+  border-radius: 8px;
+  border-left: 2px solid var(--blue);
+}
+
+.setup-help code {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--blue);
+}
+
+/* Section label */
+.section-label {
+  padding: 24px 22px 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* App grid */
+.app-grid {
+  padding: 0 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.app-tile {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.app-tile:active::before { opacity: 1; }
+.app-tile:active { transform: scale(0.97); }
+
+.app-tile-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.app-tile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.app-tile-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.app-tile-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border2);
+}
+
+.app-tile-status.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* Sync all btn */
+.sync-all-btn {
+  margin: 16px 22px 0;
+  width: calc(100% - 44px);
+  background: var(--green-dim);
+  border: 1px solid rgba(63,185,80,0.25);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sync-all-btn:active { transform: scale(0.98); }
+.sync-all-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Last sync */
+.last-sync {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 12px;
+  padding: 0 22px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 10px 22px;
+  border-radius: 99px;
+  opacity: 0;
+  transition: all 0.25s;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; animation: spin 1s linear infinite; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-logo">🧰</div>
+    <div class="header-title">App Hub</div>
+    <div class="header-sub">Ed's Personal Tools · Sync Setup</div>
+  </div>
+
+  <!-- Sync Status Banner -->
+  <div class="sync-banner disconnected" id="syncBanner">
+    <div class="sync-dot"></div>
+    <div>
+      <div class="sync-text" id="syncText">Not connected</div>
+      <div class="sync-sub" id="syncSub">Enter your GitHub token below to enable sync</div>
+    </div>
+  </div>
+
+  <!-- Setup Card -->
+  <div class="setup-card">
+    <div class="setup-card-header">
+      <div class="setup-card-icon">🔑</div>
+      <div class="setup-card-title">GitHub Sync Configuration</div>
+    </div>
+    <div class="setup-card-body">
+
+      <div class="field-label">Personal Access Token</div>
+      <div class="token-input-row">
+        <input class="token-input" id="tokenInput" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        <button class="toggle-vis" onclick="toggleVis()" id="visBtn">👁</button>
+      </div>
+
+      <div class="field-label">Repository (owner/repo)</div>
+      <input class="repo-input" id="repoInput" value="edwardflottjr-wq/Edwardflottjr-we.github.io" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+
+      <button class="save-btn" onclick="saveAndVerify()">
+        <span id="saveBtnText">Verify & Save</span>
+      </button>
+      <button class="clear-btn" onclick="clearToken()">Clear Saved Token</button>
+
+      <div class="setup-help">
+        Your token is stored <strong>only on this device</strong> in your browser's local storage. It never leaves your phone or passes through any server. Each device (phone, iPad) needs this setup once. <br><br>
+        Token needs scope: <code>repo</code>. Created at <code>github.com/settings/tokens</code>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Apps -->
+  <div class="section-label">Your Apps</div>
+
+  <div class="app-grid">
+    <a class="app-tile" href="index.html">
+      <div class="app-tile-status live"></div>
+      <span class="app-tile-icon">⚔️</span>
+      <div class="app-tile-name">Quest Log</div>
+      <div class="app-tile-desc">Points & rewards tracker</div>
+    </a>
+    <a class="app-tile" href="symptom-logger.html">
+      <div class="app-tile-status live"></div>
+      <span class="app-tile-icon">🩺</span>
+      <div class="app-tile-name">Symptom Log</div>
+      <div class="app-tile-desc">Daily SSA evidence log</div>
+    </a>
+    <a class="app-tile" href="meds.html">
+      <div class="app-tile-status live"></div>
+      <span class="app-tile-icon">💊</span>
+      <div class="app-tile-name">Medications</div>
+      <div class="app-tile-desc">Compliance tracker</div>
+    </a>
+    <a class="app-tile" href="planner.html">
+      <div class="app-tile-status live"></div>
+      <span class="app-tile-icon">📅</span>
+      <div class="app-tile-name">Task Planner</div>
+      <div class="app-tile-desc">Daily/weekly/monthly tasks</div>
+    </a>
+    <a class="app-tile" href="news.html">
+      <div class="app-tile-status live"></div>
+      <span class="app-tile-icon">📰</span>
+      <div class="app-tile-name">Morning Brief</div>
+      <div class="app-tile-desc">AI-powered news digest</div>
+    </a>
+    <a class="app-tile" href="#" style="opacity:0.4; cursor:default">
+      <div class="app-tile-status"></div>
+      <span class="app-tile-icon">🚧</span>
+      <div class="app-tile-name">Coming Soon</div>
+      <div class="app-tile-desc">More apps in progress</div>
+    </a>
+  </div>
+
+  <!-- Sync All -->
+  <button class="sync-all-btn" id="syncAllBtn" onclick="syncAll()" disabled>
+    <span class="spinner" id="syncSpinner" style="display:none">⟳</span>
+    <span id="syncAllText">↕ Sync All Apps</span>
+  </button>
+
+  <div class="last-sync" id="lastSync"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'gh_sync_config';
+const DATA_FILE = 'app-data.json';
+
+// ── Load saved config ──
+function loadConfig() {
+  try {
+    const c = localStorage.getItem(STORAGE_KEY);
+    return c ? JSON.parse(c) : null;
+  } catch(_) { return null; }
+}
+
+function saveConfig(token, repo) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ token, repo }));
+}
+
+function clearToken() {
+  if (!confirm('Clear saved token? You\'ll need to re-enter it.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('tokenInput').value = '';
+  setBanner('disconnected', 'Not connected', 'Enter your GitHub token below');
+  document.getElementById('syncAllBtn').disabled = true;
+  showToast('Token cleared');
+}
+
+function toggleVis() {
+  const inp = document.getElementById('tokenInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ── Verify token against GitHub API ──
+async function saveAndVerify() {
+  const token = document.getElementById('tokenInput').value.trim();
+  const repo = document.getElementById('repoInput').value.trim();
+
+  if (!token) { showToast('Please enter your token'); return; }
+  if (!repo || !repo.includes('/')) { showToast('Repo format: owner/repo'); return; }
+
+  const btn = document.getElementById('saveBtnText');
+  btn.textContent = '⟳ Verifying...';
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${repo}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+
+    if (res.status === 200) {
+      const data = await res.json();
+      saveConfig(token, repo);
+      setBanner('connected',
+        `Connected · ${data.full_name}`,
+        `Authenticated as ${data.owner?.login || 'user'} · Sync ready`
+      );
+      document.getElementById('syncAllBtn').disabled = false;
+      showToast('✓ Connected!', '#3fb950');
+      // Initialize data file if needed
+      await initDataFile(token, repo);
+    } else if (res.status === 401) {
+      setBanner('error', 'Invalid token', 'Token rejected by GitHub — check it and try again');
+      showToast('Token invalid', '#f85149');
+    } else if (res.status === 404) {
+      setBanner('error', 'Repo not found', `Can't find ${repo} — check the name`);
+      showToast('Repo not found', '#f85149');
+    } else {
+      setBanner('error', `Error ${res.status}`, 'Something went wrong — try again');
+      showToast(`Error: ${res.status}`, '#f85149');
+    }
+  } catch(e) {
+    setBanner('error', 'Network error', 'Check your connection and try again');
+    showToast('Network error', '#f85149');
+  }
+
+  btn.textContent = 'Verify & Save';
+}
+
+// ── Initialize data file in repo ──
+async function initDataFile(token, repo) {
+  // Check if file exists
+  const res = await fetch(`https://api.github.com/repos/${repo}/contents/${DATA_FILE}`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+  });
+
+  if (res.status === 404) {
+    // Create initial data file
+    const initialData = {
+      version: 1,
+      lastSync: new Date().toISOString(),
+      questLog: null,
+      symptomLog: null,
+      medications: null,
+      taskPlanner: null,
+    };
+    const content = btoa(JSON.stringify(initialData, null, 2));
+    await fetch(`https://api.github.com/repos/${repo}/contents/${DATA_FILE}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Initialize app data file',
+        content,
+      })
+    });
+    showToast('Data file created in repo ✓', '#3fb950');
+  }
+}
+
+// ── Sync all apps ──
+async function syncAll() {
+  const config = loadConfig();
+  if (!config) { showToast('Not connected — save token first'); return; }
+
+  const btn = document.getElementById('syncAllBtn');
+  const spinner = document.getElementById('syncSpinner');
+  const txt = document.getElementById('syncAllText');
+  btn.disabled = true;
+  spinner.style.display = 'inline';
+  txt.textContent = 'Syncing...';
+
+  try {
+    // Gather all local app data
+    const appData = {
+      version: 1,
+      lastSync: new Date().toISOString(),
+      device: navigator.userAgent.includes('iPad') ? 'iPad' : 'iPhone',
+      questLog: localStorage.getItem('questlog_v1'),
+      symptomLog: localStorage.getItem('symptomlog_v2'),
+      medications: localStorage.getItem('medtracker_v1'),
+      taskPlanner: localStorage.getItem('taskplanner_v1'),
+    };
+
+    // Get current file SHA (needed for update)
+    const getRes = await fetch(`https://api.github.com/repos/${config.repo}/contents/${DATA_FILE}`, {
+      headers: { 'Authorization': `Bearer ${config.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+
+    let sha = null;
+    if (getRes.ok) {
+      const existing = await getRes.json();
+      // Merge: remote data + local data (local wins for non-null values)
+      let remoteData = {};
+      try {
+        remoteData = JSON.parse(atob(existing.content.replace(/\n/g, '')));
+      } catch(_) {}
+
+      // For each app, use local if set, else remote
+      ['questLog','symptomLog','medications','taskPlanner'].forEach(key => {
+        if (!appData[key] && remoteData[key]) {
+          appData[key] = remoteData[key];
+          // Also write remote data to local
+          const lsKey = { questLog:'questlog_v1', symptomLog:'symptomlog_v2', medications:'medtracker_v1', taskPlanner:'taskplanner_v1' }[key];
+          if (lsKey) localStorage.setItem(lsKey, remoteData[key]);
+        }
+      });
+
+      sha = existing.sha;
+    }
+
+    // Push merged data back
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(appData, null, 2))));
+    const pushRes = await fetch(`https://api.github.com/repos/${config.repo}/contents/${DATA_FILE}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${config.token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Sync app data — ${new Date().toLocaleString()}`,
+        content,
+        ...(sha ? { sha } : {})
+      })
+    });
+
+    if (pushRes.ok) {
+      const ts = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('lastSync').textContent = `Last synced: ${ts}`;
+      localStorage.setItem('last_sync', new Date().toISOString());
+      showToast('All apps synced ✓', '#3fb950');
+    } else {
+      const err = await pushRes.json();
+      showToast(`Sync failed: ${err.message || pushRes.status}`, '#f85149');
+    }
+  } catch(e) {
+    showToast('Sync error — check connection', '#f85149');
+  }
+
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  txt.textContent = '↕ Sync All Apps';
+}
+
+function setBanner(type, text, sub) {
+  const b = document.getElementById('syncBanner');
+  b.className = `sync-banner ${type}`;
+  document.getElementById('syncText').textContent = text;
+  document.getElementById('syncSub').textContent = sub;
+}
+
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = color || 'var(--border2)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ──
+window.addEventListener('load', () => {
+  const config = loadConfig();
+  if (config) {
+    document.getElementById('tokenInput').value = config.token;
+    document.getElementById('repoInput').value = config.repo || 'edwardflottjr-wq/Edwardflottjr-we.github.io';
+    setBanner('connected', 'Token saved', 'Tap "Verify & Save" to confirm connection');
+    document.getElementById('syncAllBtn').disabled = false;
+  }
+  const ls = localStorage.getItem('last_sync');
+  if (ls) {
+    const d = new Date(ls);
+    document.getElementById('lastSync').textContent = `Last synced: ${d.toLocaleString()}`;
+  }
+});
+</script>
+</body>
+</html>
