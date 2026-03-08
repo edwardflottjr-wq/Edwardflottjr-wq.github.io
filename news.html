@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Morning Brief">
+<meta name="theme-color" content="#f5f0e8">
+<title>Morning Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300;1,8..60,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f5f0e8;
+  --paper2: #ede8dc;
+  --ink: #1a1714;
+  --ink-mid: #4a4540;
+  --ink-dim: #8a8580;
+  --rule: #c8c0b0;
+  --rule-dark: #8a8070;
+  --red: #b91c1c;
+  --serif: 'Playfair Display', Georgia, serif;
+  --body: 'Source Serif 4', Georgia, serif;
+  --mono: 'DM Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); min-height: 100dvh; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+.app { position: relative; z-index: 1; }
+.masthead { border-bottom: 3px double var(--rule-dark); padding: 44px 20px 12px; text-align: center; }
+.masthead-overline { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 6px; }
+.masthead-title { font-family: var(--serif); font-size: 42px; font-weight: 800; letter-spacing: -1px; color: var(--ink); line-height: 1; margin-bottom: 6px; }
+.masthead-rule { width: 100%; height: 1px; background: var(--ink); margin: 8px 0 6px; }
+.masthead-meta { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-dim); }
+.masthead-tagline { font-family: var(--body); font-style: italic; font-size: 12px; color: var(--ink-mid); margin-top: 4px; text-align: center; }
+.section-nav { display: flex; overflow-x: auto; scrollbar-width: none; border-bottom: 2px solid var(--rule-dark); background: var(--paper); padding: 0 16px; position: sticky; top: 0; z-index: 20; }
+.section-nav::-webkit-scrollbar { display: none; }
+.nav-btn { background: none; border: none; border-bottom: 3px solid transparent; padding: 10px 14px; font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-dim); cursor: pointer; white-space: nowrap; transition: all 0.15s; margin-bottom: -2px; }
+.nav-btn.active { color: var(--ink); border-bottom-color: var(--ink); }
+.refresh-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; border-bottom: 1px solid var(--rule); background: var(--paper2); }
+.refresh-time { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-dim); }
+.refresh-btn { background: none; border: 1px solid var(--rule-dark); border-radius: 4px; padding: 4px 12px; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-mid); cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.refresh-btn:active { background: var(--rule); }
+.feed { padding: 0 0 80px; }
+.section-header { padding: 16px 20px 10px; border-bottom: 2px solid var(--ink); display: flex; align-items: baseline; gap: 12px; }
+.section-name { font-family: var(--serif); font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+.section-source { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); }
+.article-card { border-bottom: 1px solid var(--rule); padding: 16px 20px; cursor: pointer; transition: background 0.15s; text-decoration: none; display: block; color: inherit; }
+.article-card:active { background: var(--paper2); }
+.article-card.lead { padding: 20px 20px 16px; border-bottom: 2px solid var(--rule-dark); }
+.article-card.lead .article-title { font-size: 22px; line-height: 1.25; margin-bottom: 8px; }
+.article-source { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+.article-source-name { color: var(--ink-dim); }
+.article-title { font-family: var(--serif); font-size: 17px; font-weight: 700; line-height: 1.3; color: var(--ink); margin-bottom: 5px; }
+.article-desc { font-family: var(--body); font-size: 13px; font-weight: 300; color: var(--ink-mid); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); }
+.two-col .article-card { border-bottom: none; }
+.two-col .article-card:first-child { border-right: 1px solid var(--rule); }
+.two-col .article-card .article-title { font-size: 14px; }
+.skeleton { padding: 20px; }
+.skel-line { background: linear-gradient(90deg, var(--paper2) 25%, var(--rule) 50%, var(--paper2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 3px; margin-bottom: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.error-state { padding: 40px 20px; text-align: center; }
+.error-icon { font-size: 32px; margin-bottom: 12px; }
+.error-title { font-family: var(--serif); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.error-msg { font-size: 13px; color: var(--ink-mid); line-height: 1.6; margin-bottom: 16px; }
+.retry-btn { background: var(--ink); color: var(--paper); border: none; border-radius: 4px; padding: 10px 24px; font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
+.bias-note { margin: 0 20px 16px; padding: 10px 14px; border-left: 3px solid var(--rule-dark); font-family: var(--body); font-size: 11px; font-style: italic; color: var(--ink-dim); line-height: 1.6; }
+.colophon { padding: 20px; text-align: center; border-top: 2px solid var(--rule-dark); font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--ink-dim); text-transform: uppercase; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="masthead">
+  <div class="masthead-overline">Est. 2026 · Fort Bragg, California</div>
+  <div class="masthead-title">Morning Brief</div>
+  <div class="masthead-rule"></div>
+  <div class="masthead-meta">
+    <span id="mastDate">—</span>
+    <span>Free Press</span>
+    <span id="mastCount">Loading…</span>
+  </div>
+  <div class="masthead-tagline">All the news worth knowing, straight to your pocket</div>
+</div>
+<div class="section-nav" id="sectionNav"></div>
+<div class="refresh-bar">
+  <div class="refresh-time" id="refreshTime">Not yet loaded</div>
+  <button class="refresh-btn" onclick="loadAll()"><span id="refreshIcon">↻</span> Refresh</button>
+</div>
+<div class="feed" id="feed">
+  <div class="skeleton">
+    <div class="skel-line" style="height:12px;width:40%"></div>
+    <div class="skel-line" style="height:22px;width:85%"></div>
+    <div class="skel-line" style="height:22px;width:70%"></div>
+    <div class="skel-line" style="height:14px;width:90%;margin-top:10px"></div>
+    <div class="skel-line" style="height:14px;width:75%"></div>
+  </div>
+</div>
+<div class="colophon" id="colophon"></div>
+</div>
+<script>
+const FEEDS = [
+  { id:'world', label:'World', feeds:[{url:'https://feeds.bbci.co.uk/news/world/rss.xml',source:'BBC World'},{url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',source:'NYT World'}] },
+  { id:'us', label:'U.S.', feeds:[{url:'https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml',source:'BBC US'},{url:'https://rss.nytimes.com/services/xml/rss/nyt/US.xml',source:'NYT US'}] },
+  { id:'science', label:'Science', feeds:[{url:'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml',source:'BBC Science'},{url:'https://www.sciencedaily.com/rss/top/science.xml',source:'ScienceDaily'}] },
+  { id:'health', label:'Health', feeds:[{url:'https://feeds.bbci.co.uk/news/health/rss.xml',source:'BBC Health'},{url:'https://rss.nytimes.com/services/xml/rss/nyt/Health.xml',source:'NYT Health'}] },
+  { id:'tech', label:'Tech', feeds:[{url:'https://feeds.bbci.co.uk/news/technology/rss.xml',source:'BBC Tech'},{url:'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml',source:'NYT Tech'}] },
+  { id:'good', label:'☀ Good News', feeds:[{url:'https://www.positive.news/feed/',source:'Positive News'},{url:'https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml',source:'BBC Arts'}] },
+];
+const PROXY = 'https://api.allorigins.win/get?url=';
+let allArticles = {};
+let currentSection = 'world';
+let loading = false;
+
+function parseRSS(xmlText, sourceName) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+    const items = doc.querySelectorAll('item');
+    return Array.from(items).slice(0,8).map(item => ({
+      title: item.querySelector('title')?.textContent?.trim() || '',
+      description: stripHTML(item.querySelector('description')?.textContent || ''),
+      link: item.querySelector('link')?.textContent?.trim() || '#',
+      pubDate: item.querySelector('pubDate')?.textContent || '',
+      source: sourceName,
+    })).filter(a => a.title);
+  } catch(e) { return []; }
+}
+
+function stripHTML(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  } catch(_) { return ''; }
+}
+
+async function fetchFeed(feedUrl, sourceName) {
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(feedUrl), {signal: AbortSignal.timeout(8000)});
+    if (!res.ok) return [];
+    const data = await res.json();
+    return parseRSS(data.contents, sourceName);
+  } catch(e) { return []; }
+}
+
+async function loadSection(section) {
+  const articles = [];
+  await Promise.all(section.feeds.map(async f => {
+    const items = await fetchFeed(f.url, f.source);
+    articles.push(...items);
+  }));
+  const seen = new Set();
+  const unique = articles.filter(a => {
+    const key = a.title.slice(0,40).toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  unique.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+  return unique.slice(0,10);
+}
+
+async function loadAll() {
+  if (loading) return;
+  loading = true;
+  const icon = document.getElementById('refreshIcon');
+  icon.className = 'spin';
+  document.getElementById('feed').innerHTML = '<div class="skeleton"><div class="skel-line" style="height:12px;width:40%"></div><div class="skel-line" style="height:22px;width:85%"></div><div class="skel-line" style="height:22px;width:70%"></div><div class="skel-line" style="height:14px;width:90%;margin-top:10px"></div></div>';
+  const results = await Promise.all(FEEDS.map(s => loadSection(s).then(a => ({id:s.id,articles:a}))));
+  results.forEach(r => { allArticles[r.id] = r.articles; });
+  const now = new Date();
+  document.getElementById('refreshTime').textContent = 'Updated ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const total = Object.values(allArticles).reduce((s,a) => s+a.length, 0);
+  document.getElementById('mastCount').textContent = total + ' stories';
+  icon.className = '';
+  loading = false;
+  renderSection(currentSection);
+}
+
+function renderSection(sectionId) {
+  currentSection = sectionId;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.id === sectionId));
+  const articles = allArticles[sectionId] || [];
+  const feed = document.getElementById('feed');
+  const meta = FEEDS.find(s => s.id === sectionId);
+  if (!articles.length) {
+    feed.innerHTML = '<div class="error-state"><div class="error-icon">📰</div><div class="error-title">No stories yet</div><div class="error-msg">Tap Refresh to load the latest news.</div><button class="retry-btn" onclick="loadAll()">Load News</button></div>';
+    return;
+  }
+  const sources = meta?.feeds.map(f => f.source).join(' · ') || '';
+  let html = '<div class="section-header"><span class="section-name">' + (meta?.label||sectionId) + '</span><span class="section-source">' + sources + '</span></div>';
+  html += '<div class="bias-note">Sources include BBC and New York Times. News reflects editorial choices of these outlets. Read critically.</div>';
+  if (articles[0]) html += articleHTML(articles[0], true);
+  for (let i = 1; i < articles.length; i += 2) {
+    if (articles[i+1]) {
+      html += '<div class="two-col">' + articleHTML(articles[i],false) + articleHTML(articles[i+1],false) + '</div>';
+    } else {
+      html += articleHTML(articles[i], false);
+    }
+  }
+  feed.innerHTML = html;
+  document.getElementById('colophon').textContent = 'Morning Brief · ' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) + ' · All rights belong to respective sources';
+}
+
+function articleHTML(a, isLead) {
+  const cls = isLead ? 'article-card lead' : 'article-card';
+  const safeLink = a.link.startsWith('http') ? a.link : '#';
+  const desc = isLead ? a.description.slice(0,180) + (a.description.length>180?'…':'') : a.description.slice(0,90) + (a.description.length>90?'…':'');
+  return '<a class="' + cls + '" href="' + safeLink + '" target="_blank" rel="noopener">' +
+    '<div class="article-source"><span>' + a.source + '</span>' + (a.pubDate ? '<span class="article-source-name">' + formatDate(a.pubDate) + '</span>' : '') + '</div>' +
+    '<div class="article-title">' + a.title + '</div>' +
+    (desc ? '<div class="article-desc">' + desc + '</div>' : '') +
+    '</a>';
+}
+
+function buildNav() {
+  document.getElementById('sectionNav').innerHTML = FEEDS.map(s =>
+    '<button class="nav-btn ' + (s.id===currentSection?'active':'') + '" data-id="' + s.id + '" onclick="renderSection(\'' + s.id + '\')">' + s.label + '</button>'
+  ).join('');
+}
+
+document.getElementById('mastDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+buildNav();
+loadAll();
+</script>
+</body>
+</html>

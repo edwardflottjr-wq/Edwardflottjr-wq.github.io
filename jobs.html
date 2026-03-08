@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Job Hunt">
+<meta name="theme-color" content="#0f1923">
+<title>Job Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1923;--panel:#16222e;--panel2:#1c2d3d;--border:#243447;--border2:#2e4259;--text:#e2eaf4;--dim:#4a6278;--mid:#7a96aa;--blue:#38bdf8;--blue-dim:rgba(56,189,248,0.1);--green:#4ade80;--green-dim:rgba(74,222,128,0.1);--amber:#fbbf24;--amber-dim:rgba(251,191,36,0.1);--red:#f87171;--red-dim:rgba(248,113,113,0.1);--purple:#c084fc;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--display:'Bebas Neue',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100dvh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(56,189,248,0.05) 0%,transparent 60%);pointer-events:none}
+.app{position:relative;z-index:1}
+.header{padding:52px 20px 16px;border-bottom:1px solid var(--border)}
+.header-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin-bottom:4px}
+.header-row{display:flex;justify-content:space-between;align-items:flex-end}
+.header-title{font-family:var(--display);font-size:38px;letter-spacing:1px;color:var(--text);line-height:1}
+.stats-row{display:flex;gap:6px;margin-top:14px;margin-bottom:2px}
+.stat-chip{background:var(--panel);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;flex:1;text-align:center}
+.stat-num{font-family:var(--display);font-size:22px;line-height:1}
+.stat-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);cursor:pointer;white-space:nowrap;margin-bottom:-1px;transition:all .15s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.list{padding:14px 20px;display:flex;flex-direction:column;gap:10px;padding-bottom:100px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative}
+.card-accent{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.card-inner{padding:14px 16px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.card-name{font-size:17px;font-weight:600;color:var(--text);line-height:1.2}
+.card-type{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mid)}
+.status-badge{padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
+.card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.meta-item{font-size:11px;color:var(--mid);font-family:var(--mono)}
+.card-notes{font-size:13px;color:var(--mid);line-height:1.5;margin-bottom:10px;font-style:italic}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.action-btn{background:var(--panel2);border:1px solid var(--border2);border-radius:7px;padding:6px 12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mid);cursor:pointer;transition:all .15s}
+.action-btn:active{transform:scale(.95)}
+.action-btn.promote{color:var(--green);border-color:rgba(74,222,128,.3)}
+.action-btn.del{color:var(--red);border-color:rgba(248,113,113,.2)}
+.empty{text-align:center;padding:60px 20px;color:var(--dim);font-style:italic;font-size:14px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:none}
+.overlay.show{display:block}
+.panel{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px 36px;z-index:60;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:85dvh;overflow-y:auto}
+.panel.open{transform:translateY(0)}
+.panel-title{font-family:var(--display);font-size:24px;letter-spacing:1px;color:var(--text);margin-bottom:16px}
+.fl{margin-bottom:12px}
+.fl-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.fi{width:100%;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none}
+.fi:focus{border-color:var(--blue)}
+.fi::placeholder{color:var(--dim)}
+.status-chips{display:flex;gap:6px;flex-wrap:wrap}
+.sc{background:var(--panel2);border:1px solid var(--border2);border-radius:20px;padding:7px 12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;transition:all .15s}
+.sc.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.submit{width:100%;background:var(--blue);border:none;border-radius:10px;padding:13px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#000;cursor:pointer;margin-top:6px;transition:all .15s}
+.submit:active{transform:scale(.98)}
+.fab{position:fixed;bottom:28px;right:20px;width:56px;height:56px;background:var(--blue);border:none;border-radius:50%;font-size:26px;color:#000;cursor:pointer;box-shadow:0 4px 20px rgba(56,189,248,.35);transition:all .2s;z-index:40;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.92)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--green);color:#000;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:9px 22px;border-radius:99px;opacity:0;transition:all .25s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div class="header-label">Fort Bragg Job Hunt · 2026</div>
+  <div class="header-row">
+    <div class="header-title">Job<br>Tracker</div>
+  </div>
+  <div class="stats-row" id="statsRow"></div>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="setTab('all',this)">All</button>
+  <button class="tab" onclick="setTab('applied',this)">Applied</button>
+  <button class="tab" onclick="setTab('follow-up',this)">Follow Up</button>
+  <button class="tab" onclick="setTab('interview',this)">Interview</button>
+  <button class="tab" onclick="setTab('offer',this)">Offer</button>
+  <button class="tab" onclick="setTab('closed',this)">Closed</button>
+</div>
+<div class="list" id="jobList"></div>
+</div>
+<button class="fab" onclick="openAdd()">+</button>
+<div class="overlay" id="overlay" onclick="closeAdd()"></div>
+<div class="panel" id="panel">
+  <div class="panel-title">Add Application</div>
+  <div class="fl"><div class="fl-label">Business Name</div><input class="fi" id="jName" placeholder="e.g. Braggadoon..."/></div>
+  <div class="fl"><div class="fl-label">Type / Industry</div><input class="fi" id="jType" placeholder="e.g. Retail, Restaurant, Gallery..."/></div>
+  <div class="fl"><div class="fl-label">Contact / Person</div><input class="fi" id="jContact" placeholder="Manager name, phone, email..."/></div>
+  <div class="fl"><div class="fl-label">Date Applied</div><input class="fi" id="jDate" type="date"/></div>
+  <div class="fl"><div class="fl-label">Status</div>
+    <div class="status-chips">
+      <div class="sc active" onclick="selStatus(this,'applied')">Applied</div>
+      <div class="sc" onclick="selStatus(this,'follow-up')">Follow Up</div>
+      <div class="sc" onclick="selStatus(this,'interview')">Interview</div>
+      <div class="sc" onclick="selStatus(this,'offer')">Offer</div>
+      <div class="sc" onclick="selStatus(this,'closed')">Closed</div>
+    </div>
+  </div>
+  <div class="fl"><div class="fl-label">Notes</div><input class="fi" id="jNotes" placeholder="Hours, pay, vibe, follow-up date..."/></div>
+  <button class="submit" onclick="saveJob()">Add Job</button>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='jobtracker_v1';
+const STATUS_COLORS={applied:'var(--blue)',['follow-up']:'var(--amber)',interview:'var(--purple)',offer:'var(--green)',closed:'var(--dim)'};
+const STATUS_BG={applied:'var(--blue-dim)',['follow-up']:'var(--amber-dim)',interview:'rgba(192,132,252,0.1)',offer:'var(--green-dim)',closed:'rgba(74,98,120,0.2)'};
+let state={jobs:[],nextId:1};
+let currentTab='all';
+let selSt='applied';
+
+const DEFAULT=[
+  {id:1,name:'Braggadoon',type:'Gallery/Retail',contact:'',date:'2026-03-06',status:'applied',notes:'Resume dropped 3/6. High priority.'},
+  {id:2,name:'Mendo Litho',type:'Print/Design',contact:'',date:'2026-03-06',status:'applied',notes:'Resume dropped 3/6. High priority.'},
+  {id:3,name:'Art Explorers',type:'Arts Education',contact:'',date:'2026-03-06',status:'applied',notes:'Resume dropped 3/6. High priority.'},
+  {id:4,name:'Racines',type:'Restaurant',contact:'',date:'2026-03-06',status:'applied',notes:'Resume dropped 3/6.'},
+  {id:5,name:'Outdoor Store',type:'Retail',contact:'',date:'2026-03-06',status:'applied',notes:'Resume dropped 3/6.'},
+  {id:6,name:'Glass Fire',type:'Gallery',contact:'',date:'2026-03-13',status:'follow-up',notes:'Fri-Sat only. Dropping resume 3/13.'},
+];
+
+function load(){try{const d=localStorage.getItem(KEY);if(d)state=JSON.parse(d);else{state.jobs=DEFAULT.map(j=>({...j}));state.nextId=7;}}catch(_){state.jobs=DEFAULT.map(j=>({...j}));state.nextId=7;}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(_){}}
+
+function selStatus(el,st){selSt=st;document.querySelectorAll('.sc').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+
+function openAdd(){document.getElementById('panel').classList.add('open');document.getElementById('overlay').classList.add('show');document.getElementById('jDate').value=new Date().toISOString().split('T')[0];document.getElementById('jName').focus();}
+function closeAdd(){document.getElementById('panel').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+
+function saveJob(){
+  const name=document.getElementById('jName').value.trim();
+  if(!name)return;
+  state.jobs.unshift({id:state.nextId++,name,type:document.getElementById('jType').value.trim(),contact:document.getElementById('jContact').value.trim(),date:document.getElementById('jDate').value,status:selSt,notes:document.getElementById('jNotes').value.trim()});
+  save();render();closeAdd();
+  ['jName','jType','jContact','jNotes'].forEach(id=>document.getElementById(id).value='');
+  showToast('Added ✓');
+}
+
+function promote(id){
+  const order=['applied','follow-up','interview','offer','closed'];
+  const j=state.jobs.find(x=>x.id===id);
+  if(!j)return;
+  const i=order.indexOf(j.status);
+  if(i<order.length-1)j.status=order[i+1];
+  save();render();showToast('Updated → '+j.status);
+}
+
+function deleteJob(id){if(!confirm('Remove this job?'))return;state.jobs=state.jobs.filter(j=>j.id!==id);save();render();}
+
+function setTab(tab,el){currentTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render();}
+
+function render(){
+  const counts={applied:0,'follow-up':0,interview:0,offer:0,closed:0};
+  state.jobs.forEach(j=>{if(counts[j.status]!==undefined)counts[j.status]++;});
+  document.getElementById('statsRow').innerHTML=
+    `<div class="stat-chip"><div class="stat-num" style="color:var(--blue)">${counts.applied}</div><div class="stat-label">Applied</div></div>`+
+    `<div class="stat-chip"><div class="stat-num" style="color:var(--amber)">${counts['follow-up']}</div><div class="stat-label">Follow Up</div></div>`+
+    `<div class="stat-chip"><div class="stat-num" style="color:var(--purple)">${counts.interview}</div><div class="stat-label">Interview</div></div>`+
+    `<div class="stat-chip"><div class="stat-num" style="color:var(--green)">${counts.offer}</div><div class="stat-label">Offer</div></div>`;
+
+  let jobs=currentTab==='all'?state.jobs:state.jobs.filter(j=>j.status===currentTab);
+  const el=document.getElementById('jobList');
+  if(!jobs.length){el.innerHTML='<div class="empty">No jobs in this category yet.</div>';return;}
+  el.innerHTML=jobs.map(j=>`
+    <div class="card">
+      <div class="card-accent" style="background:${STATUS_COLORS[j.status]||'var(--dim)'}"></div>
+      <div class="card-inner">
+        <div class="card-top">
+          <div><div class="card-name">${j.name}</div><div class="card-type">${j.type||'—'}</div></div>
+          <div class="status-badge" style="background:${STATUS_BG[j.status]};color:${STATUS_COLORS[j.status]}">${j.status}</div>
+        </div>
+        <div class="card-meta">
+          ${j.date?`<span class="meta-item">📅 ${j.date}</span>`:''}
+          ${j.contact?`<span class="meta-item">📞 ${j.contact}</span>`:''}
+        </div>
+        ${j.notes?`<div class="card-notes">${j.notes}</div>`:''}
+        <div class="card-actions">
+          ${j.status!=='offer'&&j.status!=='closed'?`<button class="action-btn promote" onclick="promote(${j.id})">▶ Next Stage</button>`:''}
+          <button class="action-btn del" onclick="deleteJob(${j.id})">Remove</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+document.getElementById('jName').addEventListener('keydown',e=>{if(e.key==='Enter')saveJob();});
+load();render();
+</script>
+</body>
+</html>
