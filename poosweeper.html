@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>POO SWEEPER</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sky: #87ceeb;
+    --grass-light: #5db84a;
+    --grass-dark:  #4aa33a;
+    --cell-hover:  #6dcf56;
+    --revealed:    #d4a96a;
+    --revealed-alt:#c9a060;
+    --border-dark: #3a7a2a;
+    --border-light:#7de060;
+    --text: #2a4a1a;
+    --header-bg:   #3a7a2a;
+    --poo: #6b3a1f;
+    --flag: #e84040;
+    --shadow: #00000030;
+    --num1:#1a6bcc; --num2:#1a8c3a; --num3:#cc2a2a;
+    --num4:#6a1ab0; --num5:#b02a1a; --num6:#1a8c8c; --num7:#1a1a1a; --num8:#666;
+  }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #87ceeb 0%, #c8e6a0 60%, #5db84a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem 2rem;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 2.4rem;
+    color: #fff;
+    text-shadow: 2px 3px 0 #3a7a2a, 0 0 20px #00000030;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+  }
+
+  #subtitle {
+    font-size: 0.85rem;
+    color: #f0ffe0;
+    text-shadow: 1px 1px 0 #3a7a2a;
+    margin-bottom: 1rem;
+  }
+
+  /* Difficulty */
+  #controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .diff-btn {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.35rem 1rem;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    text-shadow: 1px 1px 0 #3a7a2a;
+  }
+  .diff-btn:hover, .diff-btn.active {
+    background: #fff;
+    color: #3a7a2a;
+    text-shadow: none;
+  }
+
+  /* HUD */
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--header-bg);
+    border-radius: 12px;
+    padding: 0.5rem 1.2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 0 #1e5016, 0 6px 16px var(--shadow);
+    color: #fff;
+    font-family: 'Fredoka One', sans-serif;
+  }
+
+  #hud span { font-size: 1.1rem; letter-spacing: 0.05em; }
+  #hud span small { font-size: 0.75rem; display: block; font-family: 'Nunito', sans-serif; font-weight:700; opacity:0.7; }
+
+  #reset-btn {
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    transition: transform 0.1s;
+    filter: drop-shadow(1px 2px 2px #0004);
+  }
+  #reset-btn:hover { transform: scale(1.2) rotate(-10deg); }
+
+  /* Board */
+  #board-wrap {
+    background: var(--grass-dark);
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 6px 0 #2a5a1a, 0 8px 24px var(--shadow);
+  }
+
+  #board {
+    display: grid;
+    gap: 2px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .cell {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    background: var(--grass-light);
+    border-radius: 3px;
+    position: relative;
+    transition: background 0.08s, transform 0.08s;
+    box-shadow: inset 0 2px 0 var(--border-light), inset 0 -2px 0 var(--border-dark);
+    user-select: none;
+  }
+
+  .cell:hover:not(.revealed):not(.flagged) {
+    background: var(--cell-hover);
+    transform: scale(1.05);
+    z-index: 2;
+  }
+
+  .cell.revealed {
+    background: var(--revealed);
+    box-shadow: inset 0 1px 3px #0002;
+    cursor: default;
+    transform: none;
+  }
+  .cell.revealed:nth-child(even) { background: var(--revealed-alt); }
+
+  .cell.flagged { background: var(--grass-light); }
+
+  .cell.poo { background: #5a2a10; }
+
+  .cell[data-n="1"] { color: var(--num1); }
+  .cell[data-n="2"] { color: var(--num2); }
+  .cell[data-n="3"] { color: var(--num3); }
+  .cell[data-n="4"] { color: var(--num4); }
+  .cell[data-n="5"] { color: var(--num5); }
+  .cell[data-n="6"] { color: var(--num6); }
+  .cell[data-n="7"] { color: var(--num7); }
+  .cell[data-n="8"] { color: var(--num8); }
+
+  /* Overlay */
+  #overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #00000070;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  #overlay.show { display: flex; }
+
+  #overlay-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    text-align: center;
+    box-shadow: 0 12px 40px #0006;
+    animation: popIn 0.2s ease-out;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  #overlay-box h2 {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 2.2rem;
+    margin-bottom: 0.4rem;
+  }
+  #overlay-box p {
+    color: #555;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+  }
+
+  #overlay-box button {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 1rem;
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--grass-light);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--border-dark);
+    transition: transform 0.1s;
+  }
+  #overlay-box button:hover { transform: translateY(-2px); }
+
+  #footer-hint {
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    color: #2a6a1a;
+    text-align: center;
+    opacity: 0.9;
+  }
+</style>
+</head>
+<body>
+
+<h1>💩 POO SWEEPER</h1>
+<p id="subtitle">Help walk Micco — but don't step in it!</p>
+
+<div id="controls">
+  <button class="diff-btn active" data-rows="9" data-cols="9" data-poo="10">🐾 Easy</button>
+  <button class="diff-btn" data-rows="12" data-cols="12" data-poo="25">💩 Medium</button>
+  <button class="diff-btn" data-rows="16" data-cols="16" data-poo="50">🚨 Hard</button>
+</div>
+
+<div id="hud">
+  <span><small>💩 Left</small><span id="poo-count">10</span></span>
+  <button id="reset-btn" title="New Game">🐕</button>
+  <span><small>⏱ Time</small><span id="timer">0</span>s</span>
+</div>
+
+<div id="board-wrap">
+  <div id="board"></div>
+</div>
+
+<p id="footer-hint">Left click to reveal &nbsp;|&nbsp; Right click to flag 🚩</p>
+
+<div id="overlay">
+  <div id="overlay-box">
+    <h2 id="overlay-emoji"></h2>
+    <h2 id="overlay-title" style="font-size:1.4rem; margin-top:0.2rem;"></h2>
+    <p id="overlay-msg"></p>
+    <button onclick="newGame()">Play Again</button>
+  </div>
+</div>
+
+<script>
+let ROWS=9, COLS=9, POO=10;
+let board=[], revealed=[], flagged=[], firstClick=true, gameOver=false;
+let timerInterval, seconds=0;
+
+const boardEl   = document.getElementById('board');
+const pooCountEl= document.getElementById('poo-count');
+const timerEl   = document.getElementById('timer');
+const overlay   = document.getElementById('overlay');
+
+document.querySelectorAll('.diff-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.diff-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    ROWS = +b.dataset.rows; COLS = +b.dataset.cols; POO = +b.dataset.poo;
+    newGame();
+  });
+});
+
+document.getElementById('reset-btn').addEventListener('click', newGame);
+
+function newGame() {
+  clearInterval(timerInterval);
+  seconds=0; timerEl.textContent='0';
+  firstClick=true; gameOver=false;
+  overlay.classList.remove('show');
+  board=[]; revealed=[]; flagged=[];
+  for(let r=0;r<ROWS;r++){
+    board.push(new Array(COLS).fill(0));
+    revealed.push(new Array(COLS).fill(false));
+    flagged.push(new Array(COLS).fill(false));
+  }
+  pooCountEl.textContent=POO;
+  renderBoard();
+}
+
+function placePoo(safeR, safeC) {
+  let placed=0;
+  while(placed<POO){
+    const r=Math.floor(Math.random()*ROWS);
+    const c=Math.floor(Math.random()*COLS);
+    if(board[r][c]===-1) continue;
+    if(Math.abs(r-safeR)<=1 && Math.abs(c-safeC)<=1) continue;
+    board[r][c]=-1; placed++;
+  }
+  // Count neighbors
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    if(board[r][c]===-1) continue;
+    let count=0;
+    neighbors(r,c).forEach(([nr,nc])=>{ if(board[nr][nc]===-1) count++; });
+    board[r][c]=count;
+  }
+}
+
+function neighbors(r,c){
+  const out=[];
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+    if(dr===0&&dc===0) continue;
+    const nr=r+dr, nc=c+dc;
+    if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS) out.push([nr,nc]);
+  }
+  return out;
+}
+
+function renderBoard(){
+  boardEl.style.gridTemplateColumns=`repeat(${COLS}, 36px)`;
+  boardEl.innerHTML='';
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.dataset.r=r; cell.dataset.c=c;
+    cell.addEventListener('click',()=>onReveal(r,c));
+    cell.addEventListener('contextmenu',e=>{e.preventDefault(); onFlag(r,c);});
+    boardEl.appendChild(cell);
+  }
+}
+
+function cellEl(r,c){ return boardEl.querySelector(`[data-r="${r}"][data-c="${c}"]`); }
+
+function onFlag(r,c){
+  if(gameOver||revealed[r][c]) return;
+  flagged[r][c]=!flagged[r][c];
+  const cell=cellEl(r,c);
+  cell.textContent=flagged[r][c]?'🚩':'';
+  cell.classList.toggle('flagged', flagged[r][c]);
+  const flags=flagged.flat().filter(Boolean).length;
+  pooCountEl.textContent=POO-flags;
+}
+
+function onReveal(r,c){
+  if(gameOver||revealed[r][c]||flagged[r][c]) return;
+  if(firstClick){
+    firstClick=false;
+    placePoo(r,c);
+    timerInterval=setInterval(()=>{ seconds++; timerEl.textContent=seconds; },1000);
+  }
+  reveal(r,c);
+  checkWin();
+}
+
+function reveal(r,c){
+  if(r<0||r>=ROWS||c<0||c>=COLS) return;
+  if(revealed[r][c]||flagged[r][c]) return;
+  revealed[r][c]=true;
+  const cell=cellEl(r,c);
+  cell.classList.add('revealed');
+
+  if(board[r][c]===-1){
+    cell.textContent='💩';
+    cell.classList.add('poo');
+    endGame(false);
+    return;
+  }
+  if(board[r][c]>0){
+    cell.textContent=board[r][c];
+    cell.dataset.n=board[r][c];
+  } else {
+    // Flood fill
+    neighbors(r,c).forEach(([nr,nc])=>reveal(nr,nc));
+  }
+}
+
+function revealAll(){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    if(board[r][c]===-1){
+      const cell=cellEl(r,c);
+      cell.textContent='💩';
+      cell.classList.add('revealed','poo');
+    }
+  }
+}
+
+function checkWin(){
+  const totalSafe=ROWS*COLS-POO;
+  const revealedSafe=revealed.flat().filter(Boolean).length;
+  if(revealedSafe===totalSafe) endGame(true);
+}
+
+function endGame(won){
+  gameOver=true;
+  clearInterval(timerInterval);
+  if(!won) revealAll();
+  const emojiEl=document.getElementById('overlay-emoji');
+  const titleEl=document.getElementById('overlay-title');
+  const msgEl  =document.getElementById('overlay-msg');
+  if(won){
+    emojiEl.textContent='🐕🎉';
+    titleEl.textContent='Yard is Clear!';
+    msgEl.textContent=`Micco can walk safely! Time: ${seconds}s`;
+  } else {
+    emojiEl.textContent='💩😬';
+    titleEl.textContent='You Stepped In It!';
+    msgEl.textContent=`That's gonna need a cleanup. Time: ${seconds}s`;
+  }
+  overlay.classList.add('show');
+}
+
+newGame();
+</script>
+</body>
+</html>
