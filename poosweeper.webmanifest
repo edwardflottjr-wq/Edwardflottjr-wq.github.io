@@ -1,0 +1,14 @@
+{
+  "name": "Poo Sweeper",
+  "short_name": "Poo Sweeper",
+  "description": "Help Micco walk the yard safely!",
+  "start_url": "./poosweeper.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#4aa33a",
+  "theme_color": "#3a7a2a",
+  "icons": [
+    { "src": "./poo-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./poo-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -4,242 +4,137 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>POO SWEEPER</title>
+<!-- PWA -->
+<link rel="manifest" href="./poosweeper.webmanifest">
+<meta name="theme-color" content="#3a7a2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Poo Sweeper">
+<link rel="apple-touch-icon" href="./poo-icon-180.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --grass-light:#5db84a;--grass-dark:#4aa33a;
+    --revealed:#d4a96a;--revealed-alt:#c9a060;
+    --border-dark:#3a7a2a;--border-light:#7de060;
+    --header-bg:#3a7a2a;--poo:#5a2a10;--shadow:#00000030;
+    --num1:#1a6bcc;--num2:#1a8c3a;--num3:#cc2a2a;
+    --num4:#6a1ab0;--num5:#b02a1a;--num6:#1a8c8c;--num7:#222;--num8:#666;
+  }
+  body{
+    min-height:100vh;
+    background:linear-gradient(180deg,#87ceeb 0%,#c8e6a0 60%,#5db84a 100%);
+    display:flex;flex-direction:column;align-items:center;
+    padding:0.8rem 0.75rem 1.5rem;
+    font-family:'Nunito',sans-serif;touch-action:manipulation;gap:0.4rem;
+  }
+  h1{
+    font-family:'Fredoka One',sans-serif;font-size:clamp(1.4rem,6vw,2.2rem);
+    color:#fff;text-shadow:2px 3px 0 #3a7a2a;letter-spacing:.05em;
+  }
+  #subtitle{font-size:0.75rem;color:#f0ffe0;text-shadow:1px 1px 0 #3a7a2a}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  #controls{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
+  .diff-btn{
+    font-family:'Fredoka One',sans-serif;font-size:.8rem;
+    padding:.3rem .9rem;border:2px solid #fff;border-radius:999px;
+    background:rgba(255,255,255,.25);color:#fff;cursor:pointer;
+    transition:background .15s,color .15s;text-shadow:1px 1px 0 #3a7a2a;
+  }
+  .diff-btn:hover,.diff-btn.active{background:#fff;color:#3a7a2a;text-shadow:none}
 
-  :root {
-    --grass-light: #5db84a;
-    --grass-dark:  #4aa33a;
-    --cell-hover:  #6dcf56;
-    --revealed:    #d4a96a;
-    --revealed-alt:#c9a060;
-    --border-dark: #3a7a2a;
-    --border-light:#7de060;
-    --header-bg:   #3a7a2a;
-    --poo: #5a2a10;
-    --shadow: #00000030;
-    --num1:#1a6bcc; --num2:#1a8c3a; --num3:#cc2a2a;
-    --num4:#6a1ab0; --num5:#b02a1a; --num6:#1a8c8c; --num7:#222; --num8:#666;
+  #hud{
+    display:flex;align-items:center;gap:1rem;
+    background:var(--header-bg);border-radius:12px;padding:.4rem 1rem;
+    box-shadow:0 4px 0 #1e5016,0 6px 16px var(--shadow);
+    color:#fff;font-family:'Fredoka One',sans-serif;
+  }
+  #hud .stat{text-align:center}
+  #hud .stat small{font-size:.62rem;display:block;font-family:'Nunito',sans-serif;font-weight:700;opacity:.7}
+  #hud .stat span{font-size:1.1rem}
+  #reset-btn{
+    font-size:1.4rem;background:none;border:none;cursor:pointer;
+    line-height:1;transition:transform .15s;filter:drop-shadow(1px 2px 2px #0004);
+  }
+  #reset-btn:hover{transform:scale(1.2) rotate(-10deg)}
+  #sound-toggle{
+    font-family:'Fredoka One',sans-serif;font-size:.7rem;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);
+    color:#fff;border-radius:999px;padding:.15rem .5rem;cursor:pointer;
+    transition:background .15s;
+  }
+  #sound-toggle:hover{background:rgba(255,255,255,.3)}
+
+  #mode-toggle{
+    display:flex;align-items:center;background:#fff;
+    border-radius:999px;padding:3px;
+    box-shadow:0 3px 0 #1e5016,0 4px 12px var(--shadow);
+  }
+  .mode-btn{
+    font-family:'Fredoka One',sans-serif;font-size:.88rem;
+    padding:.38rem 1.1rem;border:none;border-radius:999px;
+    cursor:pointer;transition:background .18s,color .18s;
+    background:transparent;color:#888;
+  }
+  .mode-btn.active{color:#fff}
+  #mode-reveal.active{background:var(--grass-light)}
+  #mode-flag.active{background:#e84040}
+  #mode-hint{font-size:.65rem;color:#2a6a1a;text-align:center}
+
+  #board-wrap{
+    background:var(--grass-dark);padding:6px;border-radius:10px;
+    box-shadow:0 6px 0 #2a5a1a,0 8px 24px var(--shadow);
+    max-width:100%;overflow:auto;
+  }
+  #board{display:grid;gap:2px;border-radius:6px;overflow:hidden}
+
+  .cell{
+    width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    font-family:'Fredoka One',sans-serif;font-size:1rem;cursor:pointer;
+    background:var(--grass-light);border-radius:3px;
+    transition:background .08s,transform .08s;
+    box-shadow:inset 0 2px 0 var(--border-light),inset 0 -2px 0 var(--border-dark);
+    user-select:none;-webkit-tap-highlight-color:transparent;
+  }
+  @media(max-width:420px){.cell{width:28px;height:28px;font-size:.82rem}}
+  .cell:active:not(.revealed){transform:scale(.92)}
+  .cell.revealed{background:var(--revealed);box-shadow:inset 0 1px 3px #0002;cursor:default}
+  .cell.revealed:nth-child(even){background:var(--revealed-alt)}
+  .cell.poo{background:var(--poo)}
+  .cell[data-n="1"]{color:var(--num1)}.cell[data-n="2"]{color:var(--num2)}
+  .cell[data-n="3"]{color:var(--num3)}.cell[data-n="4"]{color:var(--num4)}
+  .cell[data-n="5"]{color:var(--num5)}.cell[data-n="6"]{color:var(--num6)}
+  .cell[data-n="7"]{color:var(--num7)}.cell[data-n="8"]{color:var(--num8)}
+
+  /* Best times panel */
+  #best-times{
+    font-size:.65rem;color:#2a5a1a;text-align:center;line-height:1.9;
+    background:rgba(255,255,255,.35);border-radius:10px;
+    padding:.4rem .9rem;width:100%;max-width:340px;
+    font-family:'Fredoka One',sans-serif;
   }
 
-  body {
-    min-height: 100vh;
-    background: linear-gradient(180deg, #87ceeb 0%, #c8e6a0 60%, #5db84a 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem 0.75rem 2rem;
-    font-family: 'Nunito', sans-serif;
-    touch-action: manipulation;
+  #overlay{
+    display:none;position:fixed;inset:0;
+    background:#00000070;align-items:center;justify-content:center;z-index:100;
   }
-
-  h1 {
-    font-family: 'Fredoka One', sans-serif;
-    font-size: 2.2rem;
-    color: #fff;
-    text-shadow: 2px 3px 0 #3a7a2a;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.1rem;
+  #overlay.show{display:flex}
+  #overlay-box{
+    background:#fff;border-radius:20px;padding:1.6rem 2rem;
+    text-align:center;box-shadow:0 12px 40px #0006;
+    animation:popIn .2s ease-out;max-width:90vw;
   }
-
-  #subtitle {
-    font-size: 0.8rem;
-    color: #f0ffe0;
-    text-shadow: 1px 1px 0 #3a7a2a;
-    margin-bottom: 0.8rem;
+  @keyframes popIn{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+  #overlay-box h2{font-family:'Fredoka One',sans-serif;font-size:1.8rem;margin-bottom:.3rem}
+  #overlay-box p{color:#555;margin-bottom:1rem;font-size:.88rem}
+  #overlay-box button{
+    font-family:'Fredoka One',sans-serif;font-size:1rem;
+    padding:.5rem 1.5rem;border:none;border-radius:999px;
+    background:var(--grass-light);color:#fff;cursor:pointer;
+    box-shadow:0 4px 0 var(--border-dark);
   }
-
-  #controls {
-    display: flex;
-    gap: 0.4rem;
-    margin-bottom: 0.8rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .diff-btn {
-    font-family: 'Fredoka One', sans-serif;
-    font-size: 0.8rem;
-    padding: 0.3rem 0.9rem;
-    border: 2px solid #fff;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.25);
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    text-shadow: 1px 1px 0 #3a7a2a;
-  }
-  .diff-btn:hover, .diff-btn.active {
-    background: #fff;
-    color: #3a7a2a;
-    text-shadow: none;
-  }
-
-  #hud {
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    background: var(--header-bg);
-    border-radius: 12px;
-    padding: 0.45rem 1.1rem;
-    margin-bottom: 0.8rem;
-    box-shadow: 0 4px 0 #1e5016, 0 6px 16px var(--shadow);
-    color: #fff;
-    font-family: 'Fredoka One', sans-serif;
-  }
-
-  #hud .stat { text-align: center; }
-  #hud .stat small { font-size: 0.65rem; display: block; font-family: 'Nunito', sans-serif; font-weight:700; opacity:0.7; }
-  #hud .stat span { font-size: 1.1rem; }
-
-  #reset-btn {
-    font-size: 1.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    line-height: 1;
-    transition: transform 0.15s;
-    filter: drop-shadow(1px 2px 2px #0004);
-    padding: 0 0.2rem;
-  }
-  #reset-btn:hover { transform: scale(1.2) rotate(-10deg); }
-
-  #mode-toggle {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border-radius: 999px;
-    padding: 3px;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 3px 0 #1e5016, 0 4px 12px var(--shadow);
-  }
-
-  .mode-btn {
-    font-family: 'Fredoka One', sans-serif;
-    font-size: 0.9rem;
-    padding: 0.4rem 1.2rem;
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s;
-    background: transparent;
-    color: #888;
-  }
-
-  .mode-btn.active { color: #fff; }
-  #mode-reveal.active { background: var(--grass-light); }
-  #mode-flag.active   { background: #e84040; }
-
-  #mode-hint {
-    font-size: 0.68rem;
-    color: #2a6a1a;
-    margin-bottom: 0.7rem;
-    text-align: center;
-  }
-
-  #board-wrap {
-    background: var(--grass-dark);
-    padding: 6px;
-    border-radius: 10px;
-    box-shadow: 0 6px 0 #2a5a1a, 0 8px 24px var(--shadow);
-    max-width: 100%;
-    overflow: auto;
-  }
-
-  #board {
-    display: grid;
-    gap: 2px;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .cell {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka One', sans-serif;
-    font-size: 1rem;
-    cursor: pointer;
-    background: var(--grass-light);
-    border-radius: 3px;
-    transition: background 0.08s, transform 0.08s;
-    box-shadow: inset 0 2px 0 var(--border-light), inset 0 -2px 0 var(--border-dark);
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  @media (max-width: 420px) {
-    .cell { width: 28px; height: 28px; font-size: 0.8rem; }
-  }
-
-  .cell:active:not(.revealed) { transform: scale(0.92); }
-
-  .cell.revealed {
-    background: var(--revealed);
-    box-shadow: inset 0 1px 3px #0002;
-    cursor: default;
-  }
-  .cell.revealed:nth-child(even) { background: var(--revealed-alt); }
-  .cell.poo { background: var(--poo); }
-
-  .cell[data-n="1"] { color: var(--num1); }
-  .cell[data-n="2"] { color: var(--num2); }
-  .cell[data-n="3"] { color: var(--num3); }
-  .cell[data-n="4"] { color: var(--num4); }
-  .cell[data-n="5"] { color: var(--num5); }
-  .cell[data-n="6"] { color: var(--num6); }
-  .cell[data-n="7"] { color: var(--num7); }
-  .cell[data-n="8"] { color: var(--num8); }
-
-  #overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: #00000070;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  #overlay.show { display: flex; }
-
-  #overlay-box {
-    background: #fff;
-    border-radius: 20px;
-    padding: 2rem 2.5rem;
-    text-align: center;
-    box-shadow: 0 12px 40px #0006;
-    animation: popIn 0.2s ease-out;
-    max-width: 90vw;
-  }
-
-  @keyframes popIn {
-    from { transform: scale(0.7); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
-  }
-
-  #overlay-box h2 { font-family: 'Fredoka One', sans-serif; font-size: 1.9rem; margin-bottom: 0.3rem; }
-  #overlay-box p  { color: #555; margin-bottom: 1.2rem; font-size: 0.9rem; }
-
-  #overlay-box button {
-    font-family: 'Fredoka One', sans-serif;
-    font-size: 1rem;
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 999px;
-    background: var(--grass-light);
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 4px 0 var(--border-dark);
-  }
-
-  #desktop-hint {
-    margin-top: 0.8rem;
-    font-size: 0.62rem;
-    color: #2a6a1a;
-    opacity: 0.8;
-    text-align: center;
-  }
+  #desktop-hint{font-size:.6rem;color:#2a6a1a;opacity:.7;text-align:center}
 </style>
 </head>
 <body>
@@ -248,15 +143,16 @@
 <p id="subtitle">Help walk Micco — but don't step in it!</p>
 
 <div id="controls">
-  <button class="diff-btn active" data-rows="9" data-cols="9" data-poo="10">🐾 Easy</button>
-  <button class="diff-btn" data-rows="12" data-cols="12" data-poo="25">💩 Medium</button>
-  <button class="diff-btn" data-rows="16" data-cols="16" data-poo="50">🚨 Hard</button>
+  <button class="diff-btn active" data-rows="9"  data-cols="9"  data-poo="10" data-key="easy">🐾 Easy</button>
+  <button class="diff-btn"        data-rows="12" data-cols="12" data-poo="25" data-key="med">💩 Medium</button>
+  <button class="diff-btn"        data-rows="16" data-cols="16" data-poo="50" data-key="hard">🚨 Hard</button>
 </div>
 
 <div id="hud">
   <div class="stat"><small>💩 Left</small><span id="poo-count">10</span></div>
   <button id="reset-btn" title="New Game">🐕</button>
   <div class="stat"><small>⏱ Time</small><span id="timer">0</span>s</div>
+  <button id="sound-toggle">🔊</button>
 </div>
 
 <div id="mode-toggle">
@@ -265,58 +161,123 @@
 </div>
 <p id="mode-hint">Tap a tile to <strong>reveal</strong> it</p>
 
-<div id="board-wrap">
-  <div id="board"></div>
-</div>
+<div id="board-wrap"><div id="board"></div></div>
+
+<div id="best-times">🏆 Best Times</div>
 
 <p id="desktop-hint">Desktop: right-click also flags &nbsp;|&nbsp; Mobile: use toggle above</p>
 
 <div id="overlay">
   <div id="overlay-box">
     <h2 id="overlay-emoji"></h2>
-    <h2 id="overlay-title" style="font-size:1.3rem; margin-top:0.2rem;"></h2>
+    <h2 id="overlay-title" style="font-size:1.3rem;margin-top:.2rem"></h2>
     <p id="overlay-msg"></p>
     <button onclick="newGame()">Play Again</button>
   </div>
 </div>
 
 <script>
-let ROWS=9, COLS=9, POO=10;
-let board=[], revealed=[], flagged=[];
-let firstClick=true, isGameOver=false, flagMode=false;
-let timerInterval, seconds=0;
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+let audioCtx=null;
+let soundOn=localStorage.getItem('poo-sound')!=='off';
+updateSoundBtn();
 
-const boardEl    = document.getElementById('board');
-const pooCountEl = document.getElementById('poo-count');
-const timerEl    = document.getElementById('timer');
-const overlay    = document.getElementById('overlay');
-const modeHint   = document.getElementById('mode-hint');
-const modeReveal = document.getElementById('mode-reveal');
-const modeFlagBtn= document.getElementById('mode-flag');
+function getCtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function beep({freq=440,freq2=null,type='sine',vol=0.18,dur=0.1,delay=0}={}){
+  if(!soundOn) return;
+  try{
+    const ctx=getCtx();
+    const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type=type;
+    const t=ctx.currentTime+delay;
+    osc.frequency.setValueAtTime(freq,t);
+    if(freq2) osc.frequency.exponentialRampToValueAtTime(freq2,t+dur);
+    gain.gain.setValueAtTime(vol,t);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.01);
+  }catch(e){}
+}
+function playReveal(){ beep({freq:600,freq2:800,type:'sine',vol:0.08,dur:0.05}); }
+function playFlag(){ beep({freq:300,freq2:350,type:'square',vol:0.1,dur:0.07}); }
+function playWin(){
+  [0,.1,.2,.32,.46].forEach((d,i)=>{
+    beep({freq:[330,392,523,659,784][i],type:'sine',vol:.15,dur:.12,delay:d});
+  });
+}
+function playSplat(){
+  // Descending noise burst — "splat" feel
+  beep({freq:180,freq2:40,type:'sawtooth',vol:.25,dur:.35});
+  beep({freq:120,freq2:30,type:'square',vol:.12,dur:.3,delay:.05});
+}
+function updateSoundBtn(){
+  document.getElementById('sound-toggle').textContent=soundOn?'🔊':'🔇';
+}
+document.getElementById('sound-toggle').addEventListener('click',()=>{
+  soundOn=!soundOn;
+  localStorage.setItem('poo-sound',soundOn?'on':'off');
+  updateSoundBtn();
+  if(soundOn) beep({freq:440,dur:.05});
+});
 
-document.querySelectorAll('.diff-btn').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('active'));
+// ─── HIGH SCORES (best time per difficulty) ───────────────────────────────────
+function getBests(){
+  try{ return JSON.parse(localStorage.getItem('poo-bests')||'{}'); }catch{ return {}; }
+}
+function saveBest(key,secs){
+  const bests=getBests();
+  if(!bests[key]||secs<bests[key]) bests[key]=secs;
+  localStorage.setItem('poo-bests',JSON.stringify(bests));
+}
+function renderBests(){
+  const bests=getBests();
+  const labels={easy:'🐾 Easy',med:'💩 Med',hard:'🚨 Hard'};
+  const parts=Object.entries(labels).map(([k,l])=>{
+    return bests[k]!==undefined ? `${l}: ${bests[k]}s` : `${l}: —`;
+  });
+  document.getElementById('best-times').innerHTML='🏆 Best Times &nbsp;|&nbsp; '+parts.join(' &nbsp;|&nbsp; ');
+}
+
+// ─── GAME ────────────────────────────────────────────────────────────────────
+let ROWS=9,COLS=9,POO=10,DIFF_KEY='easy';
+let board=[],revealed=[],flagged=[];
+let firstClick=true,isGameOver=false,flagMode=false;
+let timerInterval,seconds=0;
+
+const boardEl=document.getElementById('board');
+const pooCountEl=document.getElementById('poo-count');
+const timerEl=document.getElementById('timer');
+const overlay=document.getElementById('overlay');
+const modeHint=document.getElementById('mode-hint');
+const modeReveal=document.getElementById('mode-reveal');
+const modeFlagBtn=document.getElementById('mode-flag');
+
+document.querySelectorAll('.diff-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.diff-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
-    ROWS = +b.dataset.rows; COLS = +b.dataset.cols; POO = +b.dataset.poo;
+    ROWS=+b.dataset.rows; COLS=+b.dataset.cols; POO=+b.dataset.poo;
+    DIFF_KEY=b.dataset.key;
     newGame();
   });
 });
+document.getElementById('reset-btn').addEventListener('click',newGame);
+modeReveal.addEventListener('click',()=>setMode(false));
+modeFlagBtn.addEventListener('click',()=>setMode(true));
 
-document.getElementById('reset-btn').addEventListener('click', newGame);
-modeReveal.addEventListener('click', () => setMode(false));
-modeFlagBtn.addEventListener('click', () => setMode(true));
-
-function setMode(flag) {
-  flagMode = flag;
-  modeReveal.classList.toggle('active', !flag);
-  modeFlagBtn.classList.toggle('active', flag);
-  modeHint.innerHTML = flag
-    ? 'Tap a tile to <strong>flag</strong> 🚩 it'
-    : 'Tap a tile to <strong>reveal</strong> it';
+function setMode(flag){
+  flagMode=flag;
+  modeReveal.classList.toggle('active',!flag);
+  modeFlagBtn.classList.toggle('active',flag);
+  modeHint.innerHTML=flag
+    ?'Tap a tile to <strong>flag</strong> 🚩 it'
+    :'Tap a tile to <strong>reveal</strong> it';
 }
 
-function newGame() {
+function newGame(){
   clearInterval(timerInterval);
   seconds=0; timerEl.textContent='0';
   firstClick=true; isGameOver=false;
@@ -327,25 +288,23 @@ function newGame() {
     revealed.push(new Array(COLS).fill(false));
     flagged.push(new Array(COLS).fill(false));
   }
-  pooCountEl.textContent = POO;
-  setMode(false);
-  renderBoard();
+  pooCountEl.textContent=POO;
+  setMode(false); renderBoard(); renderBests();
 }
 
-function placePoo(safeR, safeC) {
-  let placed = 0;
-  while(placed < POO){
-    const r = Math.floor(Math.random()*ROWS);
-    const c = Math.floor(Math.random()*COLS);
-    if(board[r][c] === -1) continue;
-    if(Math.abs(r-safeR) <= 1 && Math.abs(c-safeC) <= 1) continue;
-    board[r][c] = -1; placed++;
+function placePoo(safeR,safeC){
+  let placed=0;
+  while(placed<POO){
+    const r=Math.floor(Math.random()*ROWS), c=Math.floor(Math.random()*COLS);
+    if(board[r][c]===-1) continue;
+    if(Math.abs(r-safeR)<=1&&Math.abs(c-safeC)<=1) continue;
+    board[r][c]=-1; placed++;
   }
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    if(board[r][c] === -1) continue;
-    let count = 0;
-    neighbors(r,c).forEach(([nr,nc]) => { if(board[nr][nc]===-1) count++; });
-    board[r][c] = count;
+    if(board[r][c]===-1) continue;
+    let count=0;
+    neighbors(r,c).forEach(([nr,nc])=>{ if(board[nr][nc]===-1) count++; });
+    board[r][c]=count;
   }
 }
 
@@ -360,88 +319,80 @@ function neighbors(r,c){
 }
 
 function renderBoard(){
-  boardEl.style.gridTemplateColumns = `repeat(${COLS}, auto)`;
-  boardEl.innerHTML = '';
+  boardEl.style.gridTemplateColumns=`repeat(${COLS},auto)`;
+  boardEl.innerHTML='';
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const cell = document.createElement('div');
-    cell.className = 'cell';
-    cell.dataset.r = r; cell.dataset.c = c;
-    cell.addEventListener('click', () => onTap(r, c));
-    cell.addEventListener('contextmenu', e => { e.preventDefault(); onFlag(r,c); });
+    const cell=document.createElement('div');
+    cell.className='cell'; cell.dataset.r=r; cell.dataset.c=c;
+    cell.addEventListener('click',()=>onTap(r,c));
+    cell.addEventListener('contextmenu',e=>{e.preventDefault();onFlag(r,c);});
     boardEl.appendChild(cell);
   }
 }
 
 function cellEl(r,c){ return boardEl.querySelector(`[data-r="${r}"][data-c="${c}"]`); }
 
-function onTap(r,c){
-  if(flagMode) onFlag(r,c);
-  else         onReveal(r,c);
-}
+function onTap(r,c){ flagMode?onFlag(r,c):onReveal(r,c); }
 
 function onFlag(r,c){
-  if(isGameOver || revealed[r][c]) return;
-  flagged[r][c] = !flagged[r][c];
-  const cell = cellEl(r,c);
-  cell.textContent = flagged[r][c] ? '🚩' : '';
-  cell.classList.toggle('flagged', flagged[r][c]);
-  pooCountEl.textContent = POO - flagged.flat().filter(Boolean).length;
+  if(isGameOver||revealed[r][c]) return;
+  flagged[r][c]=!flagged[r][c];
+  const cell=cellEl(r,c);
+  cell.textContent=flagged[r][c]?'🚩':'';
+  cell.classList.toggle('flagged',flagged[r][c]);
+  pooCountEl.textContent=POO-flagged.flat().filter(Boolean).length;
+  playFlag();
 }
 
 function onReveal(r,c){
-  if(isGameOver || revealed[r][c] || flagged[r][c]) return;
+  if(isGameOver||revealed[r][c]||flagged[r][c]) return;
   if(firstClick){
-    firstClick = false;
-    placePoo(r,c);
-    timerInterval = setInterval(() => { seconds++; timerEl.textContent = seconds; }, 1000);
+    firstClick=false; placePoo(r,c);
+    timerInterval=setInterval(()=>{ seconds++; timerEl.textContent=seconds; },1000);
   }
-  reveal(r,c);
-  checkWin();
+  reveal(r,c); checkWin();
 }
 
 function reveal(r,c){
   if(r<0||r>=ROWS||c<0||c>=COLS) return;
   if(revealed[r][c]||flagged[r][c]) return;
-  revealed[r][c] = true;
-  const cell = cellEl(r,c);
+  revealed[r][c]=true;
+  const cell=cellEl(r,c);
   cell.classList.add('revealed');
-  if(board[r][c] === -1){
-    cell.textContent = '💩';
-    cell.classList.add('poo');
-    endGame(false);
-    return;
+  if(board[r][c]===-1){
+    cell.textContent='💩'; cell.classList.add('poo');
+    endGame(false); return;
   }
-  if(board[r][c] > 0){
-    cell.textContent = board[r][c];
-    cell.dataset.n = board[r][c];
+  playReveal();
+  if(board[r][c]>0){
+    cell.textContent=board[r][c]; cell.dataset.n=board[r][c];
   } else {
-    neighbors(r,c).forEach(([nr,nc]) => reveal(nr,nc));
+    neighbors(r,c).forEach(([nr,nc])=>reveal(nr,nc));
   }
 }
 
 function revealAll(){
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     if(board[r][c]===-1){
-      const cell = cellEl(r,c);
-      cell.textContent = '💩';
-      cell.classList.add('revealed','poo');
+      const cell=cellEl(r,c);
+      cell.textContent='💩'; cell.classList.add('revealed','poo');
     }
   }
 }
 
 function checkWin(){
-  if(revealed.flat().filter(Boolean).length === ROWS*COLS - POO) endGame(true);
+  if(revealed.flat().filter(Boolean).length===ROWS*COLS-POO) endGame(true);
 }
 
 function endGame(won){
-  isGameOver = true;
-  clearInterval(timerInterval);
-  if(!won) revealAll();
-  document.getElementById('overlay-emoji').textContent = won ? '🐕🎉' : '💩😬';
-  document.getElementById('overlay-title').textContent = won ? 'Yard is Clear!' : 'You Stepped In It!';
-  document.getElementById('overlay-msg').textContent   = won
-    ? `Micco can walk safely! Time: ${seconds}s`
-    : `That's gonna need a cleanup. Time: ${seconds}s`;
+  isGameOver=true; clearInterval(timerInterval);
+  if(won){ playWin(); saveBest(DIFF_KEY,seconds); renderBests(); }
+  else{ revealAll(); playSplat(); }
+  document.getElementById('overlay-emoji').textContent=won?'🐕🎉':'💩😬';
+  document.getElementById('overlay-title').textContent=won?'Yard is Clear!':'You Stepped In It!';
+  document.getElementById('overlay-msg').textContent=won
+    ?`Micco can walk safely! Time: ${seconds}s`
+    :`That's gonna need a cleanup. Time: ${seconds}s`;
   overlay.classList.add('show');
 }
 
