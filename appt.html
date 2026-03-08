@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Appt Notes">
+<meta name="theme-color" content="#0c1018">
+<title>Appointment Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c1018;--panel:#131820;--panel2:#192028;--border:#1e2a38;--border2:#283848;--text:#c8d8e8;--dim:#3a5068;--mid:#6888a8;--blue:#4898e8;--blue-dim:rgba(72,152,232,0.1);--green:#48c888;--amber:#d8a840;--serif:'IBM Plex Serif',Georgia,serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--serif);min-height:100dvh;overflow-x:hidden}
+.app{position:relative}
+.header{padding:52px 22px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#090e14 0%,transparent 100%)}
+.header-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--blue);opacity:.8;margin-bottom:4px}
+.header-title{font-size:24px;font-weight:500;font-style:italic;color:var(--text);margin-bottom:2px}
+.header-row{display:flex;justify-content:space-between;align-items:flex-end}
+.appt-count{background:var(--panel);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;text-align:right}
+.count-num{font-family:var(--mono);font-size:20px;color:var(--blue);line-height:1}
+.count-label{font-family:var(--mono);font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 22px}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);cursor:pointer;margin-bottom:-1px;transition:all .15s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+/* Note list */
+.note-list{padding:16px 22px;display:flex;flex-direction:column;gap:10px;padding-bottom:100px}
+.note-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s}
+.note-card:active{background:var(--panel2)}
+.note-card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.note-provider{font-family:var(--serif);font-size:17px;font-weight:500;color:var(--text)}
+.note-type{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(72,152,232,.2)}
+.note-meta{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap}
+.meta-pill{font-family:var(--mono);font-size:9px;color:var(--mid)}
+.note-preview{padding:10px 18px 14px;font-size:13px;font-style:italic;color:var(--mid);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-tags{padding:0 18px 12px;display:flex;flex-wrap:wrap;gap:5px}
+.note-tag{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:4px;background:rgba(72,152,232,.06);color:var(--mid);border:1px solid var(--border2)}
+.empty{text-align:center;padding:60px 20px;font-family:var(--serif);font-style:italic;color:var(--dim);font-size:15px;line-height:1.8}
+/* Add panel */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:none}
+.overlay.show{display:block}
+.panel{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 22px 36px;z-index:60;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:92dvh;overflow-y:auto}
+.panel.open{transform:translateY(0)}
+.panel-title{font-family:var(--serif);font-size:22px;font-style:italic;color:var(--text);margin-bottom:16px}
+.fl{margin-bottom:12px}
+.fl-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.fi{width:100%;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--serif);font-size:14px;outline:none}
+.fi:focus{border-color:var(--blue)}
+.fi::placeholder{color:var(--dim)}
+.fi-ta{min-height:100px;resize:none;line-height:1.7;font-style:italic}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.type-chips{display:flex;gap:6px;flex-wrap:wrap}
+.tc{background:var(--panel2);border:1px solid var(--border2);border-radius:20px;padding:6px 12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;transition:all .15s}
+.tc.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.submit{width:100%;background:var(--blue);border:none;border-radius:10px;padding:13px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#fff;cursor:pointer;margin-top:6px}
+.submit:active{transform:scale(.98)}
+.fab{position:fixed;bottom:28px;right:22px;width:56px;height:56px;background:var(--blue);border:none;border-radius:50%;font-size:26px;color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(72,152,232,.3);z-index:40;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fab:active{transform:scale(.92)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--green);color:#000;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:9px 22px;border-radius:99px;opacity:0;transition:all .25s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Detail view */
+.detail-view{position:fixed;inset:0;background:var(--bg);z-index:80;overflow-y:auto;display:none;padding-bottom:40px}
+.detail-view.show{display:block}
+.detail-header{padding:52px 22px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.detail-back{background:none;border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mid);cursor:pointer;flex-shrink:0}
+.detail-del{background:none;border:1px solid rgba(248,100,100,.2);border-radius:8px;padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#f86464;cursor:pointer;flex-shrink:0}
+.detail-provider{font-family:var(--serif);font-size:26px;font-weight:500;font-style:italic;color:var(--text);margin:16px 22px 4px}
+.detail-meta{font-family:var(--mono);font-size:10px;color:var(--dim);padding:0 22px 16px;border-bottom:1px solid var(--border)}
+.detail-section{padding:16px 22px}
+.detail-section-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:10px}
+.detail-text{font-family:var(--serif);font-size:15px;line-height:1.8;color:var(--text);font-style:italic}
+.detail-followups{display:flex;flex-direction:column;gap:6px}
+.followup-item{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start}
+.fu-bullet{color:var(--blue);font-weight:700;flex-shrink:0}
+.fu-text{font-size:13px;color:var(--text)}
+.export-btn{margin:16px 22px 0;width:calc(100% - 44px);background:none;border:1px solid var(--border2);border-radius:10px;padding:12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);cursor:pointer}
+.export-btn:active{border-color:var(--blue);color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div class="header-eyebrow">Medical Record · SSA Documentation</div>
+  <div class="header-row">
+    <div class="header-title">Appointment Notes</div>
+    <div class="appt-count"><div class="count-num" id="apptCount">0</div><div class="count-label">Visits</div></div>
+  </div>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="setTab('all',this)">All</button>
+  <button class="tab" onclick="setTab('Primary Care',this)">Primary</button>
+  <button class="tab" onclick="setTab('Specialist',this)">Specialist</button>
+  <button class="tab" onclick="setTab('Mental Health',this)">Mental Health</button>
+</div>
+<div class="note-list" id="noteList"></div>
+</div>
+
+<!-- Detail view -->
+<div class="detail-view" id="detailView">
+  <div class="detail-header">
+    <button class="detail-back" onclick="closeDetail()">← Back</button>
+    <button class="detail-del" id="detailDel">Remove</button>
+  </div>
+  <div class="detail-provider" id="dProvider"></div>
+  <div class="detail-meta" id="dMeta"></div>
+  <div class="detail-section"><div class="detail-section-label">Summary</div><div class="detail-text" id="dSummary"></div></div>
+  <div class="detail-section" id="dFollowupSection"><div class="detail-section-label">Follow-ups / Action Items</div><div class="detail-followups" id="dFollowups"></div></div>
+  <div class="detail-section"><div class="detail-section-label">What I Want to Remember</div><div class="detail-text" id="dNotes"></div></div>
+  <button class="export-btn" onclick="exportCurrent()">📋 Copy as Plain Text</button>
+</div>
+
+<button class="fab" onclick="openAdd()">+</button>
+<div class="overlay" id="overlay" onclick="closeAdd()"></div>
+<div class="panel" id="panel">
+  <div class="panel-title">New Appointment</div>
+  <div class="two-col">
+    <div class="fl"><div class="fl-label">Provider</div><input class="fi" id="aProv" placeholder="Dr. Kahn..."/></div>
+    <div class="fl"><div class="fl-label">Date</div><input class="fi" id="aDate" type="date"/></div>
+  </div>
+  <div class="fl"><div class="fl-label">Type</div>
+    <div class="type-chips">
+      <div class="tc active" onclick="selType(this,'Primary Care')">Primary Care</div>
+      <div class="tc" onclick="selType(this,'Specialist')">Specialist</div>
+      <div class="tc" onclick="selType(this,'Mental Health')">Mental Health</div>
+      <div class="tc" onclick="selType(this,'Telehealth')">Telehealth</div>
+    </div>
+  </div>
+  <div class="fl"><div class="fl-label">Summary / What was discussed</div><textarea class="fi fi-ta" id="aSummary" placeholder="Main topics, diagnoses discussed, test results..."></textarea></div>
+  <div class="fl"><div class="fl-label">Follow-ups (one per line)</div><textarea class="fi" id="aFollowups" placeholder="Referral to specialist&#10;Lab work ordered&#10;Return in 6 weeks..." rows="3" style="resize:none;font-family:var(--mono);font-size:12px"></textarea></div>
+  <div class="fl"><div class="fl-label">Personal Notes</div><textarea class="fi fi-ta" id="aNotes" placeholder="How I felt, what I want to follow up on, what surprised me..." rows="3"></textarea></div>
+  <button class="submit" onclick="saveNote()">Save Appointment</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='apptnotes_v1';
+let state={notes:[],nextId:1};
+let currentType='all',currentDetail=null,selApptType='Primary Care';
+
+const DEFAULT=[{id:1,provider:'Dr. Kahn',date:'2026-03-11',type:'Telehealth',summary:'Telehealth appointment. Discussed disability documentation, hEDS evaluation, POTS symptoms, alpha-2 agonist options (guanfacine vs clonidine). Requested functional capacity letter for SSA.',followups:['Functional capacity letter for SSA','hEDS Beighton Scale evaluation','POTS tilt assessment referral','Consider TOS evaluation','Alpha-2 agonist prescription discussion'],notes:'Brought combined_doctor_document as reference. March 11 2026.'}];
+
+function load(){try{const d=localStorage.getItem(KEY);if(d)state=JSON.parse(d);else{state.notes=DEFAULT.map(n=>({...n}));state.nextId=2;}}catch(_){state.notes=DEFAULT.map(n=>({...n}));state.nextId=2;}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(_){}}
+
+function selType(el,t){selApptType=t;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+
+function openAdd(){document.getElementById('panel').classList.add('open');document.getElementById('overlay').classList.add('show');document.getElementById('aDate').value=new Date().toISOString().split('T')[0];document.getElementById('aProv').focus();}
+function closeAdd(){document.getElementById('panel').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+
+function saveNote(){
+  const provider=document.getElementById('aProv').value.trim();
+  if(!provider)return;
+  const followupsRaw=document.getElementById('aFollowups').value.trim();
+  const note={id:state.nextId++,provider,date:document.getElementById('aDate').value,type:selApptType,summary:document.getElementById('aSummary').value.trim(),followups:followupsRaw?followupsRaw.split('\n').filter(Boolean):[],notes:document.getElementById('aNotes').value.trim()};
+  state.notes.unshift(note);save();render();closeAdd();
+  ['aProv','aSummary','aFollowups','aNotes'].forEach(id=>document.getElementById(id).value='');
+  showToast('Saved ✓');
+}
+
+function setTab(type,el){currentType=type;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render();}
+
+function render(){
+  let notes=currentType==='all'?state.notes:state.notes.filter(n=>n.type===currentType);
+  document.getElementById('apptCount').textContent=state.notes.length;
+  const el=document.getElementById('noteList');
+  if(!notes.length){el.innerHTML='<div class="empty">No appointments logged yet.<br>Tap + to add your first.</div>';return;}
+  el.innerHTML=notes.map(n=>`
+    <div class="note-card" onclick="openDetail(${n.id})">
+      <div class="note-card-head">
+        <div class="note-provider">${n.provider}</div>
+        <div class="note-type">${n.type}</div>
+      </div>
+      <div class="note-meta">
+        ${n.date?`<span class="meta-pill">📅 ${n.date}</span>`:''}
+        ${n.followups?.length?`<span class="meta-pill">☑ ${n.followups.length} follow-ups</span>`:''}
+      </div>
+      ${n.summary?`<div class="note-preview">${n.summary}</div>`:''}
+    </div>`).join('');
+}
+
+function openDetail(id){
+  const n=state.notes.find(x=>x.id===id);if(!n)return;
+  currentDetail=n;
+  document.getElementById('dProvider').textContent=n.provider;
+  document.getElementById('dMeta').textContent=(n.date||'')+(n.type?' · '+n.type:'');
+  document.getElementById('dSummary').textContent=n.summary||'No summary recorded.';
+  const fus=document.getElementById('dFollowups');
+  const fuSec=document.getElementById('dFollowupSection');
+  if(n.followups?.length){fuSec.style.display='block';fus.innerHTML=n.followups.map(f=>`<div class="followup-item"><div class="fu-bullet">→</div><div class="fu-text">${f}</div></div>`).join('');}
+  else fuSec.style.display='none';
+  document.getElementById('dNotes').textContent=n.notes||'No personal notes recorded.';
+  document.getElementById('detailDel').onclick=()=>{if(confirm('Delete this note?')){state.notes=state.notes.filter(x=>x.id!==id);save();render();closeDetail();}};
+  document.getElementById('detailView').classList.add('show');
+}
+
+function closeDetail(){document.getElementById('detailView').classList.remove('show');}
+
+function exportCurrent(){
+  if(!currentDetail)return;
+  const n=currentDetail;
+  const lines=['APPOINTMENT NOTES — '+n.provider,'Date: '+(n.date||'unknown')+' · Type: '+n.type,'','SUMMARY:',n.summary||'',''];
+  if(n.followups?.length){lines.push('FOLLOW-UPS:');n.followups.forEach(f=>lines.push('→ '+f));lines.push('');}
+  if(n.notes)lines.push('PERSONAL NOTES:',n.notes);
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>showToast('Copied!'));
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+load();render();
+document.getElementById('aProv').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('aSummary').focus();});
+</script>
+</body>
+</html>
