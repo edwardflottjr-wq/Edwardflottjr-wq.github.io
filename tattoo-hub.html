@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>InkForge — Tattoo Ecosystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --gold: #d4a853;
+    --gold-dim: #a07830;
+    --text: #e8e8e8;
+    --muted: #888;
+    --dim: #555;
+    --success: #27ae60;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 20px 20px;
+    text-align: center;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+  }
+  .logo {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 2.8rem;
+    color: var(--text);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .logo span { color: var(--red); }
+  .tagline {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ── BACK LINK ── */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    padding: 12px 20px 0;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--text); }
+
+  /* ── WELCOME BANNER ── */
+  .welcome {
+    margin: 20px;
+    padding: 18px;
+    background: linear-gradient(135deg, #1a0d0d, #1a1a0a);
+    border: 1px solid #3a2020;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #ccc;
+    line-height: 1.6;
+  }
+  .welcome strong { color: var(--gold); }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    padding: 16px 20px 8px;
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* ── TOOL GRID ── */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 20px;
+  }
+  @media (min-width: 600px) { .tool-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: var(--card-color, var(--red));
+    opacity: 0.7;
+  }
+  .tool-card:hover, .tool-card:active {
+    border-color: var(--card-color, var(--red));
+    background: var(--surface2);
+    transform: translateY(-1px);
+  }
+  .tool-icon { font-size: 1.8rem; }
+  .tool-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+  }
+  .tool-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* ── TIPS SECTION ── */
+  .tips-grid {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tip-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: #ccc;
+    line-height: 1.5;
+  }
+  .tip-card .tip-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  /* ── API SETTINGS ── */
+  .settings-card {
+    margin: 0 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .settings-card h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .settings-card h3 .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dim);
+    flex-shrink: 0;
+  }
+  .settings-card h3 .status-dot.active { background: var(--success); }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .input-group label {
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .input-group input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus { border-color: var(--red); }
+  .btn {
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .btn:hover { background: var(--red-light); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--dim); background: transparent; }
+  .save-msg {
+    font-size: 0.75rem;
+    color: var(--success);
+    font-family: 'DM Mono', monospace;
+    margin-top: 8px;
+    display: none;
+  }
+  .api-note {
+    font-size: 0.72rem;
+    color: var(--dim);
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+  .api-note a { color: var(--gold); }
+
+  /* ── STYLE REFERENCE ── */
+  .style-grid {
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (min-width: 500px) { .style-grid { grid-template-columns: repeat(3, 1fr); } }
+  .style-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  .style-pill .pill-name { color: var(--text); margin-bottom: 2px; }
+  .style-pill .pill-tags {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<a href="setup.html" class="back-link">← App Hub</a>
+
+<header>
+  <div class="logo">Ink<span>Forge</span></div>
+  <div class="tagline">Tattoo Artist Ecosystem</div>
+</header>
+
+<div class="welcome">
+  <strong>Welcome to InkForge</strong> — a suite of tools built for tattoo artists and their clients. Design with AI assistance, convert sketches to print-ready stencils, preview designs on the body, and get expert advice on longevity, style, and placement. All powered by Claude AI.
+</div>
+
+<!-- TOOLS -->
+<div class="section-header">🛠 Tools</div>
+<div class="tool-grid">
+  <a href="tattoo-studio.html" class="tool-card" style="--card-color:#c0392b">
+    <div class="tool-icon">✏️</div>
+    <div class="tool-name">Design Studio</div>
+    <div class="tool-desc">Draw, upload & refine designs. Generate clean stencils.</div>
+  </a>
+  <a href="tattoo-preview.html" class="tool-card" style="--card-color:#8e44ad">
+    <div class="tool-icon">📷</div>
+    <div class="tool-name">Body Preview</div>
+    <div class="tool-desc">Overlay designs on body photos. 3D skin wrap simulation.</div>
+  </a>
+  <a href="tattoo-advisor.html" class="tool-card" style="--card-color:#d4a853">
+    <div class="tool-icon">🧠</div>
+    <div class="tool-name">AI Advisor</div>
+    <div class="tool-desc">Expert tattoo guidance. Aging, style, placement & more.</div>
+  </a>
+</div>
+
+<!-- API SETTINGS -->
+<div class="section-header">⚙️ Settings</div>
+<div class="settings-card">
+  <h3>
+    <span class="status-dot" id="apiDot"></span>
+    Anthropic API Key
+  </h3>
+  <div class="input-group">
+    <label>API Key</label>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn" onclick="saveApiKey()">Save Key</button>
+    <button class="btn btn-ghost" onclick="clearApiKey()">Clear</button>
+  </div>
+  <div class="save-msg" id="saveMsg">✓ Key saved</div>
+  <p class="api-note">
+    Your API key is stored locally on this device only. Needed for AI Advisor and design analysis features.<br>
+    Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+  </p>
+</div>
+
+<!-- STYLE REFERENCE -->
+<div class="section-header">🎨 Tattoo Style Reference</div>
+<div class="style-grid">
+  <div class="style-pill">
+    <div class="pill-name">Traditional</div>
+    <div class="pill-tags">Bold lines · Flat color · Iconic</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Neo-Traditional</div>
+    <div class="pill-tags">Shading · Rich color · Detailed</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Blackwork</div>
+    <div class="pill-tags">Black ink · Geometric · Bold</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Watercolor</div>
+    <div class="pill-tags">Soft edges · No outline · Fades</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Japanese</div>
+    <div class="pill-tags">Flowing · Symbolic · Shading</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Geometric</div>
+    <div class="pill-tags">Precision · Patterns · Lines</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Realism</div>
+    <div class="pill-tags">Photographic · Detail · Shading</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Fine Line</div>
+    <div class="pill-tags">Delicate · Minimalist · Intricate</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">Tribal</div>
+    <div class="pill-tags">Cultural · Patterns · Black</div>
+  </div>
+  <div class="style-pill">
+    <div class="pill-name">New School</div>
+    <div class="pill-tags">Cartoonish · Vivid · Thick lines</div>
+  </div>
+</div>
+
+<!-- TIPS -->
+<div class="section-header">💡 Pro Tips</div>
+<div class="tips-grid">
+  <div class="tip-card">
+    <div class="tip-label">Line Weight</div>
+    Lines thinner than 1mm will blur and spread within 5–10 years. Fine line work needs careful placement away from high-flex areas like wrists and elbows.
+  </div>
+  <div class="tip-card">
+    <div class="tip-label">Color Retention</div>
+    Blacks and dark blues hold longest. Yellows and pinks fade fastest. White ink rarely stays true — often turns yellowish. UV exposure accelerates all fading.
+  </div>
+  <div class="tip-card">
+    <div class="tip-label">Detail Density</div>
+    Crowded small details merge over time. A rule of thumb: if you can't clearly see each element with a pencil at the final size, it'll muddy in skin.
+  </div>
+  <div class="tip-card">
+    <div class="tip-label">Placement</div>
+    Hands, feet, knees, and elbows heal poorly due to constant movement. Inner bicep and ribs are high-pain. Outer upper arm and thigh heal best.
+  </div>
+  <div class="tip-card">
+    <div class="tip-label">Stencil Size</div>
+    Always print and tape the stencil to the skin before committing. Clients consistently underestimate how large a tattoo needs to be to look right.
+  </div>
+</div>
+
+<script>
+  function checkApiKey() {
+    const key = localStorage.getItem('inkforge_api_key');
+    const dot = document.getElementById('apiDot');
+    const input = document.getElementById('apiKeyInput');
+    if (key) {
+      dot.classList.add('active');
+      input.value = '••••••••••••••••';
+      input.placeholder = 'Key saved';
+    } else {
+      dot.classList.remove('active');
+    }
+  }
+
+  function saveApiKey() {
+    const input = document.getElementById('apiKeyInput');
+    const val = input.value.trim();
+    if (!val || val.startsWith('•')) return;
+    localStorage.setItem('inkforge_api_key', val);
+    const msg = document.getElementById('saveMsg');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 3000);
+    checkApiKey();
+  }
+
+  function clearApiKey() {
+    localStorage.removeItem('inkforge_api_key');
+    document.getElementById('apiKeyInput').value = '';
+    document.getElementById('apiKeyInput').placeholder = 'sk-ant-...';
+    checkApiKey();
+  }
+
+  checkApiKey();
+</script>
+</body>
+</html>
