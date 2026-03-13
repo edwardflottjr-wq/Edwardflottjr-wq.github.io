@@ -206,6 +206,10 @@ textarea.field{resize:none;height:88px;line-height:1.5;}
       <div class="stat-num" id="statNeeds" style="color:var(--needswork)">0</div>
       <div class="stat-label">Needs Work</div>
     </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statStreak" style="color:var(--amber)">0</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -236,6 +240,13 @@ textarea.field{resize:none;height:88px;line-height:1.5;}
       </div>
 
       <input class="field" id="sSkills" placeholder="Skills to practice (comma-separated)" maxlength="150" />
+
+      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:6px;">DOG ENERGY LEVEL</div>
+      <div class="chip-row" id="energyChips">
+        <div class="chip sel-high"   onclick="selectEnergy('high')"  >🔥 High</div>
+        <div class="chip"            onclick="selectEnergy('medium')" >⚡ Medium</div>
+        <div class="chip"            onclick="selectEnergy('low')"    >💤 Low</div>
+      </div>
 
       <textarea class="field" id="sPlannedNotes" placeholder="Plan / things to try this session (optional)..."></textarea>
 
@@ -324,6 +335,7 @@ textarea.field{resize:none;height:88px;line-height:1.5;}
 const KEY = 'dogtraining_v2';
 let state = { dogName:'', skills:[], sessions:[] };
 let newSkillStatus = 'needswork';
+let newSessionEnergy = 'high';
 let skillFilter = 'all';
 let techFilter = 'all';
 let notesTargetId = null;
@@ -596,6 +608,15 @@ function saveDogName() {
 // ─────────────────────────────────────────
 // SESSIONS
 // ─────────────────────────────────────────
+function selectEnergy(e) {
+  newSessionEnergy = e;
+  const colors = {high:'sel-high',medium:'sel-medium',low:'sel-low'};
+  document.querySelectorAll('#energyChips .chip').forEach(c => {
+    const k = c.textContent.includes('High')?'high':c.textContent.includes('Medium')?'medium':'low';
+    c.className = 'chip' + (k===e?' '+colors[k]:'');
+  });
+}
+
 function toggleNewSessionForm() {
   showingNewForm = !showingNewForm;
   document.getElementById('newSessionForm').style.display = showingNewForm ? '' : 'none';
@@ -614,7 +635,7 @@ function createSession() {
   const session = {
     id: Date.now(), goal, duration,
     date: date || new Date().toISOString().split('T')[0],
-    skills, plannedNotes,
+    skills, plannedNotes, energy: newSessionEnergy,
     reflectionNotes: '', nextFocus: '', rating: 0
   };
   state.sessions.unshift(session);
@@ -623,6 +644,8 @@ function createSession() {
   // Clear form
   ['sGoal','sDuration','sSkills','sPlannedNotes'].forEach(id => document.getElementById(id).value='');
   document.getElementById('sDate').value = new Date().toISOString().split('T')[0];
+  newSessionEnergy = 'high';
+  selectEnergy('high');
   toggleNewSessionForm();
   render();
   showToast('Session created! 🐾');
@@ -755,12 +778,27 @@ function showToast(msg) {
 // ─────────────────────────────────────────
 // RENDER
 // ─────────────────────────────────────────
+function calcStreak() {
+  if (!state.sessions.length) return 0;
+  const days = new Set(state.sessions.map(s=>s.date).filter(Boolean));
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 366; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    if (days.has(key)) { streak++; } else if (i > 0) { break; }
+  }
+  return streak;
+}
+
 function render() {
   document.getElementById('dogNameLbl').textContent = state.dogName || 'Set dog\'s name';
   document.getElementById('statSessions').textContent = state.sessions.length;
   document.getElementById('statMastered').textContent = state.skills.filter(s=>s.status==='mastered').length;
   document.getElementById('statInprog').textContent   = state.skills.filter(s=>s.status==='inprog').length;
   document.getElementById('statNeeds').textContent    = state.skills.filter(s=>s.status==='needswork').length;
+  document.getElementById('statStreak').textContent   = calcStreak();
   renderSessions();
   renderSkills();
   renderSkillControls();
@@ -787,6 +825,7 @@ function renderSessions() {
           <div class="session-meta">
             <span class="session-date-lbl">${d}</span>
             ${s.duration?`<span class="session-dur-lbl">⏱ ${esc(s.duration)}</span>`:''}
+            ${s.energy?`<span style="font-size:11px;">${s.energy==='high'?'🔥':s.energy==='medium'?'⚡':'💤'}</span>`:''}
             ${stars?`<span class="session-rating">${stars}</span>`:''}
             ${hasNotes?'<span style="font-size:11px;color:var(--forest);font-style:italic;">✓ Notes</span>':''}
           </div>
