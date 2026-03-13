@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dog Training">
+<meta name="theme-color" content="#0a0a0f">
+<title>Dog Training Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:#7a5e20;
+  --ink:#0a0a0f;--stone:#1a1820;--stone-light:#252230;
+  --rune:#4a9eff;--health:#e05555;--forest:#4caf7d;--amber:#f09a30;
+  --text-main:#f0e6cc;--text-dim:#8a7a5a;
+  --mastered:#4caf7d;--inprog:#4a9eff;--needswork:#e05555;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--ink);color:var(--text-main);font-family:'Crimson Pro',Georgia,serif;min-height:100dvh;overflow-x:hidden;position:relative;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,#1a1430 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 80% 80%,#0d180d 0%,transparent 50%),radial-gradient(ellipse 60% 40% at 20% 70%,#1a100d 0%,transparent 50%);pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 0 100px;}
+
+/* HEADER */
+.header{text-align:center;padding:36px 20px 16px;}
+.header-ornament{font-size:11px;letter-spacing:4px;color:var(--gold-dim);text-transform:uppercase;font-family:'Cinzel',serif;margin-bottom:10px;}
+.header h1{font-family:'Cinzel',serif;font-weight:900;font-size:28px;color:var(--gold-light);letter-spacing:3px;text-shadow:0 0 30px rgba(201,168,76,.3),0 2px 4px rgba(0,0,0,.8);line-height:1;margin-bottom:4px;}
+.header-sub{font-size:13px;color:var(--text-dim);font-style:italic;letter-spacing:1px;}
+.dog-name-btn{margin-top:8px;display:inline-flex;align-items:center;gap:7px;background:rgba(240,154,48,.08);border:1px solid rgba(240,154,48,.3);border-radius:20px;padding:6px 16px;cursor:pointer;font-family:'Cinzel',serif;font-size:15px;color:var(--amber);letter-spacing:2px;transition:all .2s;}
+.dog-name-btn:hover{background:rgba(240,154,48,.15);border-color:rgba(240,154,48,.5);}
+
+.divider{display:flex;align-items:center;gap:10px;padding:0 20px;margin:6px 0 16px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
+.divider-gem{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold);}
+
+/* STATS */
+.stats-bar{display:flex;gap:8px;padding:0 20px;margin-bottom:18px;}
+.stat-chip{flex:1;background:var(--stone);border:1px solid #2a2540;border-radius:12px;padding:10px 6px;text-align:center;}
+.stat-num{font-family:'Cinzel',serif;font-size:24px;font-weight:900;line-height:1;}
+.stat-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Cinzel',serif;color:var(--text-dim);margin-top:3px;}
+
+/* TABS */
+.tabs{display:flex;margin:0 20px 18px;background:var(--stone);border:1px solid #2a2540;border-radius:12px;padding:4px;gap:0;}
+.tab-btn{flex:1;background:none;border:none;border-radius:9px;padding:10px 4px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;color:var(--text-dim);transition:all .2s;}
+.tab-btn.active{background:linear-gradient(135deg,#1e1a2e,#13111f);color:var(--gold-light);box-shadow:0 0 12px rgba(201,168,76,.1);}
+
+.section-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;color:var(--gold-dim);text-transform:uppercase;padding:0 20px;margin-bottom:12px;}
+
+/* CARD / PANEL */
+.panel{margin:0 20px 16px;background:var(--stone);border:1px solid #2a2540;border-radius:14px;padding:16px;}
+.panel-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:12px;}
+
+/* FORM ELEMENTS */
+.field{width:100%;background:#13111f;border:1px solid #2a2540;border-radius:8px;padding:10px 14px;color:var(--text-main);font-family:'Crimson Pro',serif;font-size:16px;outline:none;margin-bottom:9px;transition:border-color .2s;display:block;}
+.field:focus{border-color:var(--gold-dim);}
+.field::placeholder{color:var(--text-dim);}
+textarea.field{resize:none;height:88px;line-height:1.5;}
+.field-row{display:flex;gap:8px;}
+.field-row .field{margin-bottom:0;}
+
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
+.chip{background:#13111f;border:1px solid #2a2540;border-radius:8px;padding:6px 11px;font-family:'Cinzel',serif;font-size:11px;cursor:pointer;color:var(--text-dim);transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--gold-dim);color:var(--gold-light);}
+.chip.sel-mastered {border-color:var(--mastered);color:var(--mastered);background:rgba(76,175,125,.12);}
+.chip.sel-inprog   {border-color:var(--inprog);color:var(--inprog);background:rgba(74,158,255,.12);}
+.chip.sel-needswork{border-color:var(--needswork);color:var(--needswork);background:rgba(224,85,85,.12);}
+.chip.sel-high  {border-color:var(--needswork);color:var(--needswork);background:rgba(224,85,85,.12);}
+.chip.sel-medium{border-color:var(--amber);color:var(--amber);background:rgba(240,154,48,.12);}
+.chip.sel-low   {border-color:var(--rune);color:var(--rune);background:rgba(74,158,255,.12);}
+.chip.sel-gold  {border-color:var(--gold-dim);color:var(--gold-light);background:rgba(201,168,76,.1);}
+
+.btn-primary{width:100%;background:linear-gradient(135deg,#2a2010,#1a1608);border:1px solid var(--gold-dim);border-radius:9px;padding:11px;font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--gold-light);cursor:pointer;transition:all .2s;}
+.btn-primary:hover{box-shadow:0 0 14px rgba(201,168,76,.2);}
+.btn-primary:active{transform:scale(.98);}
+
+.btn-ghost{background:none;border:1px solid #2a2540;border-radius:8px;padding:6px 12px;font-family:'Cinzel',serif;font-size:11px;color:var(--text-dim);cursor:pointer;transition:all .15s;letter-spacing:.5px;}
+.btn-ghost:hover{border-color:var(--gold-dim);color:var(--gold-light);}
+
+/* ══ SESSIONS TAB ══ */
+.session-card{background:var(--stone);border:1px solid #2a2540;border-radius:14px;margin:0 20px 10px;overflow:hidden;}
+.session-card.has-notes{border-color:rgba(201,168,76,.25);}
+.session-head{padding:14px 16px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.session-expand-icon{font-size:11px;color:var(--text-dim);margin-top:3px;transition:transform .2s;flex-shrink:0;}
+.session-card.open .session-expand-icon{transform:rotate(90deg);}
+.session-head-info{flex:1;min-width:0;}
+.session-goal{font-family:'Cinzel',serif;font-size:13px;color:var(--text-main);line-height:1.4;margin-bottom:4px;}
+.session-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.session-date-lbl{font-size:11px;color:var(--text-dim);font-style:italic;}
+.session-dur-lbl{font-size:11px;color:var(--rune);font-family:'Cinzel',serif;letter-spacing:.5px;}
+.session-rating{font-size:14px;}
+.session-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.session-tag{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:5px;padding:2px 7px;font-size:10px;color:var(--gold-dim);font-family:'Cinzel',serif;letter-spacing:.5px;}
+.session-body{padding:0 16px 14px;border-top:1px solid #1e1a2e;}
+.session-body-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin:12px 0 6px;}
+.session-notes-text{font-size:15px;color:var(--text-main);line-height:1.6;}
+.session-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+
+/* Notes capture panel */
+.notes-panel{background:#13111f;border:1px solid var(--gold-dim);border-radius:10px;padding:12px;margin-top:10px;}
+.notes-panel-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px;}
+
+/* ══ SKILLS TAB ══ */
+.skill-card{background:var(--stone);border:1px solid #2a2540;border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:10px;margin:0 20px 8px;transition:border-color .2s;}
+.skill-card.mastered  {border-color:rgba(76,175,125,.35);}
+.skill-card.inprog    {border-color:rgba(74,158,255,.35);}
+.skill-card.needswork {border-color:rgba(224,85,85,.35);}
+.skill-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 7px currentColor;}
+.skill-dot.mastered  {background:var(--mastered);color:var(--mastered);}
+.skill-dot.inprog    {background:var(--inprog);color:var(--inprog);}
+.skill-dot.needswork {background:var(--needswork);color:var(--needswork);}
+.skill-info{flex:1;min-width:0;}
+.skill-name{font-size:16px;color:var(--text-main);}
+.skill-note{font-size:12px;color:var(--text-dim);font-style:italic;margin-top:2px;}
+.skill-btns{display:flex;gap:5px;flex-shrink:0;}
+.icon-btn{background:none;border:1px solid #2a2540;border-radius:7px;padding:5px 7px;font-size:13px;cursor:pointer;transition:all .15s;line-height:1;color:var(--text-dim);}
+.icon-btn:hover{border-color:var(--gold-dim);color:var(--text-main);}
+.icon-btn.del:hover{border-color:var(--health);color:var(--health);}
+
+.filter-row{display:flex;gap:6px;padding:0 20px;margin-bottom:12px;flex-wrap:wrap;}
+.filter-chip{background:#13111f;border:1px solid #2a2540;border-radius:8px;padding:5px 11px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;color:var(--text-dim);transition:all .15s;}
+.filter-chip.f-all      {border-color:var(--gold-dim);color:var(--gold-light);}
+.filter-chip.f-mastered  {border-color:var(--mastered);color:var(--mastered);}
+.filter-chip.f-inprog    {border-color:var(--inprog);color:var(--inprog);}
+.filter-chip.f-needswork {border-color:var(--needswork);color:var(--needswork);}
+
+.preset-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px;}
+.preset-tag{background:#13111f;border:1px solid #2a2540;border-radius:5px;padding:4px 9px;font-size:11px;color:var(--text-dim);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.5px;transition:all .15s;}
+.preset-tag:hover{border-color:var(--gold-dim);color:var(--gold-light);}
+
+/* ══ TECHNIQUES TAB ══ */
+.technique-card{background:var(--stone);border:1px solid #2a2540;border-radius:14px;margin:0 20px 10px;overflow:hidden;}
+.technique-head{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.technique-icon{font-size:26px;flex-shrink:0;}
+.technique-head-text{flex:1;}
+.technique-name{font-family:'Cinzel',serif;font-size:13px;color:var(--text-main);margin-bottom:2px;}
+.technique-tagline{font-size:12px;color:var(--text-dim);font-style:italic;}
+.technique-arrow{font-size:11px;color:var(--text-dim);transition:transform .2s;}
+.technique-card.open .technique-arrow{transform:rotate(90deg);}
+.technique-body{padding:0 16px 16px;border-top:1px solid #1e1a2e;display:none;}
+.technique-card.open .technique-body{display:block;}
+.technique-body h4{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin:12px 0 6px;}
+.technique-body p{font-size:15px;color:var(--text-main);line-height:1.65;margin-bottom:8px;}
+.technique-body ul{padding-left:16px;margin-bottom:8px;}
+.technique-body li{font-size:15px;color:var(--text-main);line-height:1.6;margin-bottom:4px;}
+.technique-body .tip{background:rgba(201,168,76,.07);border-left:2px solid var(--gold-dim);padding:8px 12px;border-radius:0 6px 6px 0;font-size:14px;color:var(--text-dim);font-style:italic;}
+.technique-cat{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;padding:3px 8px;border-radius:5px;flex-shrink:0;}
+.cat-foundation{background:rgba(76,175,125,.12);color:var(--mastered);border:1px solid rgba(76,175,125,.25);}
+.cat-advanced  {background:rgba(74,158,255,.12);color:var(--inprog);border:1px solid rgba(74,158,255,.25);}
+.cat-behavior  {background:rgba(224,85,85,.12);color:var(--needswork);border:1px solid rgba(224,85,85,.25);}
+.cat-concept   {background:rgba(201,168,76,.1);color:var(--gold-dim);border:1px solid rgba(201,168,76,.2);}
+.cat-filter-row{display:flex;gap:6px;padding:0 20px;margin-bottom:14px;flex-wrap:wrap;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay.hidden{display:none;}
+.modal{background:#1a1820;border:1px solid var(--gold-dim);border-radius:20px;padding:28px 22px;width:100%;max-width:340px;box-shadow:0 0 60px rgba(201,168,76,.15);}
+.modal-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;color:var(--gold-light);text-transform:uppercase;margin-bottom:14px;text-align:center;}
+
+/* RATING STARS */
+.rating-row{display:flex;gap:8px;justify-content:center;margin-bottom:10px;}
+.star-btn{background:none;border:none;font-size:24px;cursor:pointer;opacity:.35;transition:all .15s;padding:0;}
+.star-btn.lit{opacity:1;}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1a2e;border:1px solid var(--gold-dim);border-radius:30px;padding:10px 22px;font-family:'Cinzel',serif;font-size:13px;color:var(--gold-light);box-shadow:0 8px 32px rgba(0,0,0,.6);opacity:0;transition:all .3s;z-index:100;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.empty{text-align:center;color:var(--text-dim);padding:36px 20px;font-style:italic;font-size:15px;}
+
+/* Session form toggle */
+.toggle-form-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 20px 14px;background:rgba(201,168,76,.05);border:1px dashed var(--gold-dim);border-radius:12px;padding:12px;cursor:pointer;font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold-dim);transition:all .2s;}
+.toggle-form-btn:hover{background:rgba(201,168,76,.1);color:var(--gold-light);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="header">
+    <div class="header-ornament">🐾 Canine Training Compendium 🐾</div>
+    <h1>Training Log</h1>
+    <div class="header-sub">Track. Reflect. Progress.</div>
+    <div class="dog-name-btn" onclick="openNameModal()">
+      <span>🐕</span>
+      <span id="dogNameLbl">Set dog's name</span>
+    </div>
+  </div>
+  <div class="divider"><div class="divider-gem"></div></div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-chip">
+      <div class="stat-num" id="statSessions" style="color:var(--gold-light)">0</div>
+      <div class="stat-label">Sessions</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statMastered" style="color:var(--mastered)">0</div>
+      <div class="stat-label">Mastered</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statInprog" style="color:var(--inprog)">0</div>
+      <div class="stat-label">Learning</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statNeeds" style="color:var(--needswork)">0</div>
+      <div class="stat-label">Needs Work</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="setTab('sessions')">Sessions</button>
+    <button class="tab-btn" onclick="setTab('skills')">Skills</button>
+    <button class="tab-btn" onclick="setTab('techniques')">Techniques</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SESSIONS TAB
+  ══════════════════════════════════════ -->
+  <div id="tab-sessions">
+
+    <div class="toggle-form-btn" id="newSessionToggle" onclick="toggleNewSessionForm()">
+      <span>＋</span><span id="newSessionToggleLbl">NEW TRAINING SESSION</span>
+    </div>
+
+    <!-- New Session Form -->
+    <div class="panel" id="newSessionForm" style="display:none;">
+      <div class="panel-title">🎯 Session Goal</div>
+
+      <input class="field" id="sGoal" placeholder="What is the main goal for this session? (e.g. Reliable sit-stay at 10ft)" maxlength="120" />
+
+      <div class="field-row" style="margin-bottom:9px;">
+        <input class="field" id="sDuration" placeholder="Duration (e.g. 15 min)" maxlength="20" style="flex:1;" />
+        <input class="field" id="sDate" type="date" style="flex:1;" />
+      </div>
+
+      <input class="field" id="sSkills" placeholder="Skills to practice (comma-separated)" maxlength="150" />
+
+      <textarea class="field" id="sPlannedNotes" placeholder="Plan / things to try this session (optional)..."></textarea>
+
+      <button class="btn-primary" onclick="createSession()">Start Session</button>
+    </div>
+
+    <!-- Session List -->
+    <div id="sessionsList"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SKILLS TAB
+  ══════════════════════════════════════ -->
+  <div id="tab-skills" style="display:none;">
+
+    <div class="filter-row" id="filterRow">
+      <div class="filter-chip f-all" data-f="all"       onclick="setSkillFilter('all')">All</div>
+      <div class="filter-chip"       data-f="mastered"  onclick="setSkillFilter('mastered')">✓ Mastered</div>
+      <div class="filter-chip"       data-f="inprog"    onclick="setSkillFilter('inprog')">↗ Learning</div>
+      <div class="filter-chip"       data-f="needswork" onclick="setSkillFilter('needswork')">⚠ Needs Work</div>
+    </div>
+
+    <div id="skillsList"></div>
+
+    <div class="panel">
+      <div class="panel-title">⚗ Add Skill / Command</div>
+      <div class="preset-wrap" id="presetWrap"></div>
+      <input class="field" id="skillName" placeholder="Command or behavior (e.g. Heel, Leave it)" maxlength="50" />
+      <input class="field" id="skillNote" placeholder="Notes (optional)" maxlength="100" />
+      <div class="chip-row" id="skillStatusChips"></div>
+      <button class="btn-primary" onclick="addSkill()">Add Skill</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TECHNIQUES TAB
+  ══════════════════════════════════════ -->
+  <div id="tab-techniques" style="display:none;">
+
+    <div class="cat-filter-row" id="techFilterRow"></div>
+
+    <div id="techniquesList"></div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Dog Name Modal -->
+<div class="overlay hidden" id="nameOverlay">
+  <div class="modal">
+    <div class="modal-title">🐕 Your Dog's Name</div>
+    <input class="field" id="dogNameInput" placeholder="Enter name..." maxlength="30" style="text-align:center;font-family:'Cinzel',serif;font-size:18px;letter-spacing:2px;" />
+    <button class="btn-primary" onclick="saveDogName()">Save</button>
+  </div>
+</div>
+
+<!-- End-of-Session Notes Modal -->
+<div class="overlay hidden" id="notesOverlay">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title">📝 Session Reflection</div>
+
+    <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:6px;">RATE THIS SESSION</div>
+    <div class="rating-row" id="ratingRow">
+      <button class="star-btn" data-r="1" onclick="setRating(1)">⭐</button>
+      <button class="star-btn" data-r="2" onclick="setRating(2)">⭐</button>
+      <button class="star-btn" data-r="3" onclick="setRating(3)">⭐</button>
+      <button class="star-btn" data-r="4" onclick="setRating(4)">⭐</button>
+      <button class="star-btn" data-r="5" onclick="setRating(5)">⭐</button>
+    </div>
+
+    <textarea class="field" id="notesInput" placeholder="How did it go? What clicked? What was hard? What would you do differently next time?" style="height:140px;"></textarea>
+
+    <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:6px;">WHAT TO FOCUS ON NEXT</div>
+    <input class="field" id="notesNextFocus" placeholder="Next session goal or thing to work on..." maxlength="120" />
+
+    <button class="btn-primary" onclick="saveNotes()">Save Reflection</button>
+    <button class="btn-ghost" style="width:100%;margin-top:8px;padding:10px;" onclick="closeNotesModal()">Skip for Now</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+// DATA & STATE
+// ─────────────────────────────────────────
+const KEY = 'dogtraining_v2';
+let state = { dogName:'', skills:[], sessions:[] };
+let newSkillStatus = 'needswork';
+let skillFilter = 'all';
+let techFilter = 'all';
+let notesTargetId = null;
+let pendingRating = 0;
+let showingNewForm = false;
+let toastTimer = null;
+
+const PRESETS = ['Sit','Stay','Down','Come','Heel','Leave it','Drop it',
+  'Place','Off','Wait','Shake','Spin','Roll over','Fetch','Quiet','Watch me'];
+
+const TECHNIQUES = [
+  {
+    id:'pos-reinforcement', cat:'concept', icon:'🏆',
+    name:'Positive Reinforcement (R+)',
+    tagline:'Reward what you want to see more of',
+    body: {
+      what: 'Positive reinforcement means immediately rewarding a desired behavior so the dog is more likely to repeat it. The reward must arrive within 1–2 seconds of the behavior.',
+      howto: [
+        'Decide on the behavior you want (e.g. sitting when you ask).',
+        'Wait for or prompt the behavior.',
+        'The instant the behavior happens, mark it with "Yes!" or a clicker.',
+        'Follow the mark with a reward — treat, toy, praise, or play.',
+        'Practice in short bursts (3–5 min) and end on a win.'
+      ],
+      tip: 'Vary your rewards. High-value treats (chicken, cheese) for new or hard behaviors. Lower-value (kibble) for easy, known behaviors.'
+    }
+  },
+  {
+    id:'marker-training', cat:'foundation', icon:'🎯',
+    name:'Marker Training (Clicker/Word)',
+    tagline:'Pinpoint the exact moment the dog gets it right',
+    body: {
+      what: 'A marker (clicker click or a word like "Yes!") acts as a precise signal that tells your dog the exact behavior that earned the reward. It bridges the gap between the behavior and the treat.',
+      howto: [
+        'Charge the marker: click/say "Yes" → treat, repeat 10–15 times with no behavior required.',
+        'Once charged, use the marker the instant the correct behavior occurs.',
+        'Always follow the mark with a reward — the mark is a promise.',
+        'Keep sessions short. 5 correct repetitions is a good mini-session.'
+      ],
+      tip: 'Never click without treating. It devalues the marker. If you accidentally click, still give a treat.'
+    }
+  },
+  {
+    id:'luring', cat:'foundation', icon:'🍖',
+    name:'Luring',
+    tagline:'Use a treat to guide your dog into position',
+    body: {
+      what: 'Luring uses a treat held in your hand to physically guide the dog into a behavior. It\'s great for teaching positions like sit, down, and spin quickly.',
+      howto: [
+        'Hold a treat in a closed fist at your dog\'s nose.',
+        'Slowly move your hand to guide the dog into position.',
+        'The moment the position is achieved, open your hand and reward.',
+        'After 3–5 repetitions, fade the lure: use an empty hand in the same motion, then reward from the other hand.',
+        'Add a verbal cue only after the dog is doing the behavior reliably.'
+      ],
+      tip: 'Fade the lure quickly (within a few sessions) or your dog will only respond when they see food in your hand.'
+    }
+  },
+  {
+    id:'shaping', cat:'advanced', icon:'🧩',
+    name:'Shaping (Free Shaping)',
+    tagline:'Build complex behaviors step by step',
+    body: {
+      what: 'Shaping means reinforcing successive approximations toward a goal behavior. You reward small steps that get progressively closer to the final behavior.',
+      howto: [
+        'Break the final behavior into tiny achievable steps.',
+        'Start by rewarding anything that resembles step 1.',
+        'Once step 1 is reliable, only reward when the dog gets closer to step 2.',
+        'Continue raising the criteria incrementally.',
+        'Be patient — never skip too many steps at once or the dog will get frustrated.'
+      ],
+      tip: '"Splitting" (breaking behaviors into tiny steps) leads to faster learning than "lumping" (asking for too much at once).'
+    }
+  },
+  {
+    id:'capturing', cat:'foundation', icon:'📸',
+    name:'Capturing',
+    tagline:'Catch your dog doing something right',
+    body: {
+      what: 'Capturing means marking and rewarding a behavior the dog naturally offers on their own. Great for calm behavior, yawning, lying down, etc.',
+      howto: [
+        'Watch for the behavior you want to train.',
+        'The moment it happens naturally, mark ("Yes!") and reward.',
+        'Repeat many times until the dog starts offering the behavior deliberately.',
+        'Add a verbal cue just before the dog is about to do it naturally.',
+        'Works especially well for "calm settle" and relaxation training.'
+      ],
+      tip: 'Keep treats accessible around the house so you can capture good behavior any time it happens.'
+    }
+  },
+  {
+    id:'recall', cat:'foundation', icon:'🏃',
+    name:'Recall (Come)',
+    tagline:'The most important safety skill you can teach',
+    body: {
+      what: 'A reliable recall means your dog comes to you immediately every time you call, regardless of distractions. This can save your dog\'s life.',
+      howto: [
+        'Start in a low-distraction environment (indoors, quiet yard).',
+        'Say your dog\'s name + "Come!" in a happy voice, then back up while they move toward you.',
+        'When they reach you, reward HUGELY — party, treats, praise.',
+        'Never call your dog for something unpleasant (bath, nail trim). Go get them instead.',
+        'Gradually increase distance and distraction levels.',
+        'Practice "restrained recalls" with a helper holding the dog while you build excitement.'
+      ],
+      tip: 'If your dog doesn\'t come, never repeat the cue. Instead, run the other way or drop to the ground to spark curiosity.'
+    }
+  },
+  {
+    id:'loose-leash', cat:'foundation', icon:'🦮',
+    name:'Loose Leash Walking',
+    tagline:'Teach your dog to walk without pulling',
+    body: {
+      what: 'Loose leash walking means your dog walks with slack in the leash, staying near you without pulling. It requires consistency and patience.',
+      howto: [
+        'Start in a low-distraction area with treats in hand.',
+        'The moment your dog pulls, stop completely or change direction.',
+        'Reward generously when the leash is loose and the dog is near your side.',
+        'Keep sessions short (5–10 min) as this is mentally tiring.',
+        'Use a cue like "with me" or "heel" when the dog is in position.',
+        'Gradually work toward more distracting environments.'
+      ],
+      tip: '"Be a tree" — stop the instant you feel leash tension. Movement is the reward. Only move when the leash is loose.'
+    }
+  },
+  {
+    id:'leave-it', cat:'foundation', icon:'🚫',
+    name:'Leave It & Drop It',
+    tagline:'Impulse control for things on the ground',
+    body: {
+      what: '"Leave it" means don\'t touch that thing. "Drop it" means release what\'s in your mouth. Both are critical safety skills.',
+      howto: [
+        'Leave it — Stage 1: Put a treat in your closed fist. Let the dog sniff/paw. The moment they back off, mark and reward from your other hand.',
+        'Leave it — Stage 2: Treat on the floor, cover with hand. Dog backs off → mark and reward (not the one on the floor!).',
+        'Leave it — Stage 3: Treat on floor uncovered. Dog looks away → mark and reward.',
+        'Drop it: Trade up. When dog has an item, offer a higher-value treat in exchange. Mark when they drop it. Return their item sometimes so they don\'t fear losing things.',
+      ],
+      tip: 'Never chase your dog to get something back — it becomes a game. Trade and redirect instead.'
+    }
+  },
+  {
+    id:'impulse-control', cat:'advanced', icon:'🧘',
+    name:'Impulse Control',
+    tagline:'Teaching your dog to think before acting',
+    body: {
+      what: 'Impulse control is the foundation of all good manners. A dog with strong impulse control can wait, think, and make good choices instead of reacting.',
+      howto: [
+        '"It\'s Yer Choice" game: Hold treats in your open palm. Close fist if dog goes for them. Reward only when dog backs away. Progress to keeping your hand open.',
+        'Wait before meals: Ask for a sit, place the bowl down slowly, reward calm waiting.',
+        'Door manners: Dog must sit/wait before you open the door. Release cue to go through.',
+        'Practice "nothing in life is free" — ask for a simple behavior before giving anything the dog wants.'
+      ],
+      tip: 'Self-control is exhausting for dogs. Build it slowly and reward heavily. It gets easier with practice.'
+    }
+  },
+  {
+    id:'desensitization', cat:'behavior', icon:'🌊',
+    name:'Desensitization & Counter-Conditioning',
+    tagline:'Change how your dog feels about scary things',
+    body: {
+      what: 'DS/CC reduces fear or reactivity by pairing something scary with something great, starting at a low enough level that the dog is relaxed.',
+      howto: [
+        'Identify the trigger and your dog\'s threshold (the distance/intensity where they notice but aren\'t reacting).',
+        'Expose the dog to the trigger below threshold. The moment they notice it → immediately give high-value treats.',
+        'Trigger disappears → treats stop. "Trigger = good things happen."',
+        'Very gradually decrease distance or increase intensity only when dog is fully relaxed at current level.',
+        'If the dog reacts (barks, lunges, freezes), you\'ve gone too fast. Increase distance and try again.'
+      ],
+      tip: 'Progress is not linear. Bad days happen. Never force your dog past their threshold — it can make things much worse.'
+    }
+  },
+  {
+    id:'proofing', cat:'advanced', icon:'🔩',
+    name:'Proofing (The 3 Ds)',
+    tagline:'Distance, Duration, Distraction — build a real skill',
+    body: {
+      what: 'A skill isn\'t truly learned until it works in different contexts. "Proofing" means systematically testing and training a behavior across the 3 Ds.',
+      howto: [
+        'Distance: Can your dog do it from farther away? Start at 1 foot, build to 20+ feet.',
+        'Duration: Can they hold it longer? Start at 1 second, build to minutes.',
+        'Distraction: Can they do it with distractions present? Start minor (ball on ground), build to real-world chaos.',
+        'CRITICAL: Only increase ONE D at a time. Don\'t increase all three at once.',
+        'When you add a new D, temporarily make the other two easier.'
+      ],
+      tip: '"If your dog is failing more than 20% of the time, you\'ve set the criteria too high." — Lower the bar and rebuild.'
+    }
+  },
+  {
+    id:'engagement', cat:'concept', icon:'💡',
+    name:'Building Engagement',
+    tagline:'Make yourself the most interesting thing in the world',
+    body: {
+      what: 'Engagement training is about building a dog who chooses to pay attention to you, even in distracting environments. It\'s the foundation of reliable off-leash work.',
+      howto: [
+        'Play the "check-in" game: Reward any time your dog voluntarily looks at you, especially outdoors.',
+        'Hand-feed some meals to build value in you as a reward source.',
+        '"Ready?" and movement games: Use your body language and excitement to make you more interesting than the environment.',
+        'Find your dog\'s highest-value reward and use it only for engagement moments.',
+        'Practice in progressively more distracting environments.'
+      ],
+      tip: 'If your dog won\'t engage with you, the environment is too distracting. Find a lower-distraction area and rebuild.'
+    }
+  },
+  {
+    id:'session-structure', cat:'concept', icon:'📋',
+    name:'Training Session Structure',
+    tagline:'How to run a great training session',
+    body: {
+      what: 'Short, focused sessions with clear goals produce faster learning than long, unfocused ones. Structure matters.',
+      howto: [
+        'Set one main goal per session. What specifically do you want to improve?',
+        'Start with something your dog already knows well — build confidence and focus.',
+        'Work on the new/hard thing in the middle of the session when energy is good.',
+        'Keep sessions to 3–10 minutes for puppies, 10–20 minutes for adults.',
+        'End on a success — even if you have to make the last rep easy.',
+        'Write down what happened and what to try next time.'
+      ],
+      tip: '"Always leave your dog wanting more." End before they get bored or frustrated. Five focused minutes beats thirty distracted ones.'
+    }
+  },
+  {
+    id:'timing', cat:'concept', icon:'⚡',
+    name:'Timing & Criteria',
+    tagline:'Precision is the difference between fast and slow learning',
+    body: {
+      what: 'The two biggest factors in training speed are the timing of your marker and the clarity of your criteria (exactly what you\'re rewarding).',
+      howto: [
+        'Your mark must happen within 1–2 seconds of the correct behavior — practice your clicker timing.',
+        'Be crystal clear in your own head: what exactly am I rewarding right now?',
+        'Raise criteria in small steps (see Shaping). Don\'t suddenly expect perfection.',
+        'If the dog is confused, simplify. Go back to the last step where they were succeeding.',
+        'Keep a training log so you can track what you raised and what worked.'
+      ],
+      tip: 'When in doubt, reward more. It\'s far easier to recover from being too generous than from being too stingy.'
+    }
+  },
+];
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+function load() {
+  try { const d=localStorage.getItem(KEY); if(d) state={...state,...JSON.parse(d)}; } catch(_){}
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('sDate').value = today;
+  if (!state.dogName) openNameModal();
+  render();
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(_){}
+}
+
+// ─────────────────────────────────────────
+// DOG NAME
+// ─────────────────────────────────────────
+function openNameModal() {
+  document.getElementById('dogNameInput').value = state.dogName || '';
+  document.getElementById('nameOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('dogNameInput').focus(),100);
+}
+function saveDogName() {
+  const n = document.getElementById('dogNameInput').value.trim();
+  if (!n) { showToast('Please enter your dog\'s name'); return; }
+  state.dogName = n; save();
+  document.getElementById('nameOverlay').classList.add('hidden');
+  render();
+  showToast(`Welcome, ${n}! 🐾`);
+}
+
+// ─────────────────────────────────────────
+// SESSIONS
+// ─────────────────────────────────────────
+function toggleNewSessionForm() {
+  showingNewForm = !showingNewForm;
+  document.getElementById('newSessionForm').style.display = showingNewForm ? '' : 'none';
+  document.getElementById('newSessionToggleLbl').textContent = showingNewForm ? 'CANCEL' : 'NEW TRAINING SESSION';
+}
+
+function createSession() {
+  const goal = document.getElementById('sGoal').value.trim();
+  if (!goal) { showToast('Add a goal for this session'); return; }
+  const duration = document.getElementById('sDuration').value.trim();
+  const date = document.getElementById('sDate').value;
+  const skillsRaw = document.getElementById('sSkills').value.trim();
+  const plannedNotes = document.getElementById('sPlannedNotes').value.trim();
+  const skills = skillsRaw ? skillsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+
+  const session = {
+    id: Date.now(), goal, duration,
+    date: date || new Date().toISOString().split('T')[0],
+    skills, plannedNotes,
+    reflectionNotes: '', nextFocus: '', rating: 0
+  };
+  state.sessions.unshift(session);
+  save();
+
+  // Clear form
+  ['sGoal','sDuration','sSkills','sPlannedNotes'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('sDate').value = new Date().toISOString().split('T')[0];
+  toggleNewSessionForm();
+  render();
+  showToast('Session created! 🐾');
+}
+
+function deleteSession(id) {
+  state.sessions = state.sessions.filter(s=>s.id!==id);
+  save(); renderSessions();
+}
+
+function openNotesModal(id) {
+  notesTargetId = id;
+  pendingRating = 0;
+  const session = state.sessions.find(s=>s.id===id);
+  document.getElementById('notesInput').value = session ? (session.reflectionNotes||'') : '';
+  document.getElementById('notesNextFocus').value = session ? (session.nextFocus||'') : '';
+  if (session) setRating(session.rating||0);
+  document.getElementById('notesOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('notesInput').focus(),100);
+}
+
+function closeNotesModal() {
+  document.getElementById('notesOverlay').classList.add('hidden');
+  notesTargetId = null;
+}
+
+function saveNotes() {
+  if (!notesTargetId) return;
+  const session = state.sessions.find(s=>s.id===notesTargetId);
+  if (!session) return;
+  session.reflectionNotes = document.getElementById('notesInput').value.trim();
+  session.nextFocus = document.getElementById('notesNextFocus').value.trim();
+  session.rating = pendingRating;
+  save(); closeNotesModal(); render();
+  showToast('Reflection saved ✓');
+}
+
+function setRating(r) {
+  pendingRating = r;
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.r) <= r);
+  });
+}
+
+function toggleSession(id) {
+  const card = document.getElementById('sc-'+id);
+  if (card) card.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────
+// SKILLS
+// ─────────────────────────────────────────
+function addSkill() {
+  const name = document.getElementById('skillName').value.trim();
+  if (!name) { showToast('Enter a skill name'); return; }
+  const note = document.getElementById('skillNote').value.trim();
+  state.skills.push({ id:Date.now(), name, note, status:newSkillStatus });
+  document.getElementById('skillName').value='';
+  document.getElementById('skillNote').value='';
+  save(); render();
+  showToast(`Added: ${name}`);
+}
+
+function setSkillStatus(id, status) {
+  const s = state.skills.find(x=>x.id===id);
+  if (!s) return;
+  s.status = status; save(); render();
+  const lbl = status==='mastered'?'✓ Mastered':status==='inprog'?'↗ Learning':'⚠ Needs Work';
+  showToast(`${s.name} → ${lbl}`);
+}
+
+function deleteSkill(id) {
+  state.skills = state.skills.filter(s=>s.id!==id);
+  save(); render();
+}
+
+function setSkillFilter(f) {
+  skillFilter = f;
+  document.querySelectorAll('#filterRow .filter-chip').forEach(c => {
+    const cf = c.dataset.f;
+    c.className = 'filter-chip' + (cf===f ? ` f-${cf==='all'?'all':cf}` : '');
+  });
+  renderSkills();
+}
+
+function selectSkillStatus(s) {
+  newSkillStatus = s;
+  renderSkillControls();
+}
+
+function usePreset(name) {
+  document.getElementById('skillName').value = name;
+  document.getElementById('skillName').focus();
+}
+
+// ─────────────────────────────────────────
+// TECHNIQUES
+// ─────────────────────────────────────────
+function setTechFilter(f) {
+  techFilter = f;
+  renderTechFilters();
+  renderTechniques();
+}
+
+function toggleTechnique(id) {
+  const card = document.getElementById('tc-'+id);
+  if (card) card.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────
+function setTab(tab) {
+  ['sessions','skills','techniques'].forEach((t,i) => {
+    document.getElementById(`tab-${t}`).style.display = t===tab?'':'none';
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active', t===tab);
+  });
+}
+
+// ─────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ─────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────
+function render() {
+  document.getElementById('dogNameLbl').textContent = state.dogName || 'Set dog\'s name';
+  document.getElementById('statSessions').textContent = state.sessions.length;
+  document.getElementById('statMastered').textContent = state.skills.filter(s=>s.status==='mastered').length;
+  document.getElementById('statInprog').textContent   = state.skills.filter(s=>s.status==='inprog').length;
+  document.getElementById('statNeeds').textContent    = state.skills.filter(s=>s.status==='needswork').length;
+  renderSessions();
+  renderSkills();
+  renderSkillControls();
+  renderTechFilters();
+  renderTechniques();
+}
+
+function renderSessions() {
+  const el = document.getElementById('sessionsList');
+  if (!state.sessions.length) {
+    el.innerHTML = '<div class="empty">No sessions yet — tap "New Training Session" to log your first.</div>';
+    return;
+  }
+  el.innerHTML = state.sessions.map(s => {
+    const d = s.date ? new Date(s.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : '';
+    const stars = s.rating ? '⭐'.repeat(s.rating) : '';
+    const hasNotes = !!s.reflectionNotes;
+    return `
+    <div class="session-card ${hasNotes?'has-notes':''}" id="sc-${s.id}">
+      <div class="session-head" onclick="toggleSession(${s.id})">
+        <span class="session-expand-icon">▶</span>
+        <div class="session-head-info">
+          <div class="session-goal">${esc(s.goal)}</div>
+          <div class="session-meta">
+            <span class="session-date-lbl">${d}</span>
+            ${s.duration?`<span class="session-dur-lbl">⏱ ${esc(s.duration)}</span>`:''}
+            ${stars?`<span class="session-rating">${stars}</span>`:''}
+            ${hasNotes?'<span style="font-size:11px;color:var(--forest);font-style:italic;">✓ Notes</span>':''}
+          </div>
+          ${s.skills&&s.skills.length?`<div class="session-tags">${s.skills.map(t=>`<span class="session-tag">${esc(t)}</span>`).join('')}</div>`:''}
+        </div>
+      </div>
+      <div class="session-body">
+        ${s.plannedNotes?`<div class="session-body-label">Plan</div><div class="session-notes-text">${esc(s.plannedNotes)}</div>`:''}
+        ${hasNotes?`<div class="session-body-label">Reflection</div><div class="session-notes-text">${esc(s.reflectionNotes)}</div>`:''}
+        ${s.nextFocus?`<div class="session-body-label">Next Focus</div><div class="session-notes-text">${esc(s.nextFocus)}</div>`:''}
+        <div class="session-footer">
+          <button class="btn-ghost" onclick="openNotesModal(${s.id})">📝 ${hasNotes?'Edit Reflection':'Add Reflection'}</button>
+          <button class="btn-ghost" style="color:var(--health);border-color:rgba(224,85,85,.3);" onclick="deleteSession(${s.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSkills() {
+  const el = document.getElementById('skillsList');
+  const filtered = skillFilter==='all' ? state.skills : state.skills.filter(s=>s.status===skillFilter);
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty">${skillFilter==='all'?'No skills yet — add some below.':'No skills in this category.'}</div>`;
+    return;
+  }
+  const order = {needswork:0,inprog:1,mastered:2};
+  const sorted = [...filtered].sort((a,b)=>order[a.status]-order[b.status]);
+  el.innerHTML = sorted.map(s=>`
+    <div class="skill-card ${s.status}">
+      <div class="skill-dot ${s.status}"></div>
+      <div class="skill-info">
+        <div class="skill-name">${esc(s.name)}</div>
+        ${s.note?`<div class="skill-note">${esc(s.note)}</div>`:''}
+      </div>
+      <div class="skill-btns">
+        ${s.status!=='mastered' ?`<button class="icon-btn" title="Mastered"  onclick="setSkillStatus(${s.id},'mastered')">✓</button>`:''}
+        ${s.status!=='inprog'   ?`<button class="icon-btn" title="Learning"  onclick="setSkillStatus(${s.id},'inprog')">↗</button>`:''}
+        ${s.status!=='needswork'?`<button class="icon-btn" title="Needs Work" onclick="setSkillStatus(${s.id},'needswork')">⚠</button>`:''}
+        <button class="icon-btn del" title="Delete" onclick="deleteSkill(${s.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderSkillControls() {
+  const statuses = [{k:'needswork',l:'⚠ Needs Work'},{k:'inprog',l:'↗ Learning'},{k:'mastered',l:'✓ Mastered'}];
+  document.getElementById('skillStatusChips').innerHTML = statuses.map(s=>`
+    <div class="chip ${newSkillStatus===s.k?'sel-'+s.k:''}" onclick="selectSkillStatus('${s.k}')">${s.l}</div>`).join('');
+
+  const usedNames = new Set(state.skills.map(s=>s.name.toLowerCase()));
+  const available = PRESETS.filter(p=>!usedNames.has(p.toLowerCase()));
+  document.getElementById('presetWrap').innerHTML = available.map(p=>
+    `<div class="preset-tag" onclick="usePreset('${p}')">${p}</div>`).join('');
+}
+
+function renderTechFilters() {
+  const cats = [{k:'all',l:'All'},{k:'foundation',l:'Foundation'},{k:'advanced',l:'Advanced'},{k:'behavior',l:'Behavior'},{k:'concept',l:'Concepts'}];
+  const catClasses = {foundation:'cat-foundation',advanced:'cat-advanced',behavior:'cat-behavior',concept:'cat-concept',all:''};
+  document.getElementById('techFilterRow').innerHTML = cats.map(c=>`
+    <div class="filter-chip ${techFilter===c.k?(c.k==='all'?'f-all':catClasses[c.k]):''}" onclick="setTechFilter('${c.k}')">${c.l}</div>`).join('');
+}
+
+function renderTechniques() {
+  const el = document.getElementById('techniquesList');
+  const filtered = techFilter==='all' ? TECHNIQUES : TECHNIQUES.filter(t=>t.cat===techFilter);
+  const catLabels = {foundation:'Foundation',advanced:'Advanced',behavior:'Behavior',concept:'Concept'};
+  const catClasses = {foundation:'cat-foundation',advanced:'cat-advanced',behavior:'cat-behavior',concept:'cat-concept'};
+  el.innerHTML = filtered.map(t=>`
+    <div class="technique-card" id="tc-${t.id}">
+      <div class="technique-head" onclick="toggleTechnique('${t.id}')">
+        <div class="technique-icon">${t.icon}</div>
+        <div class="technique-head-text">
+          <div class="technique-name">${t.name}</div>
+          <div class="technique-tagline">${t.tagline}</div>
+        </div>
+        <span class="technique-cat ${catClasses[t.cat]}">${catLabels[t.cat]}</span>
+        <span class="technique-arrow">▶</span>
+      </div>
+      <div class="technique-body">
+        <h4>What it is</h4>
+        <p>${t.body.what}</p>
+        <h4>How to do it</h4>
+        <ul>${t.body.howto.map(step=>`<li>${step}</li>`).join('')}</ul>
+        <div class="tip">💡 ${t.body.tip}</div>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────
+// KEYBOARD
+// ─────────────────────────────────────────
+document.getElementById('dogNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')saveDogName();});
+document.getElementById('skillName').addEventListener('keydown',e=>{if(e.key==='Enter')addSkill();});
+document.getElementById('nameOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('nameOverlay')&&state.dogName)document.getElementById('nameOverlay').classList.add('hidden');
+});
+
+load();
+</script>
+</body>
+</html>
