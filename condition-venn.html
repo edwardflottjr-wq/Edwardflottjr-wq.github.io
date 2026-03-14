@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Condition Overlap Map</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --panel: #111827;
+    --border: #1e2d40;
+    --accent1: #00e5b0;
+    --accent2: #4f9cff;
+    --accent3: #ff6b8a;
+    --text: #c8d6e5;
+    --muted: #4a5568;
+    --label: #8899aa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 11px;
+    color: var(--label);
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .instruction {
+    font-size: 11px;
+    color: var(--accent1);
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    border: 1px solid rgba(0,229,176,0.2);
+    border-radius: 4px;
+    background: rgba(0,229,176,0.04);
+  }
+  .conditions-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .cond-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--label);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    user-select: none;
+  }
+  .cond-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .cond-btn.selected-0 { border-color: var(--accent1); background: rgba(0,229,176,0.12); color: var(--accent1); }
+  .cond-btn.selected-1 { border-color: var(--accent2); background: rgba(79,156,255,0.12); color: var(--accent2); }
+  .cond-btn.selected-2 { border-color: var(--accent3); background: rgba(255,107,138,0.12); color: var(--accent3); }
+  .cond-btn.disabled { opacity: 0.35; cursor: default; }
+  .btn-clear {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border: 1px dashed var(--muted);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-clear:hover { border-color: var(--text); color: var(--text); }
+  #venn-area {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .placeholder-msg {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .placeholder-msg span {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--border);
+    margin-bottom: 8px;
+  }
+  #detail-panel {
+    display: none;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .zone-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    flex: 1;
+    min-width: 180px;
+  }
+  .zone-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .zone-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .symptom-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    margin: 2px;
+    border: 1px solid;
+    line-height: 1.4;
+  }
+  svg text { font-family: 'DM Mono', monospace; }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 10px;
+    color: var(--label);
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  footer {
+    margin-top: 20px;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Condition Overlap Map</h1>
+<div class="subtitle">SYMPTOM VENN EXPLORER · SELECT 1–3 CONDITIONS TO COMPARE</div>
+
+<div class="instruction">
+  ▸ Click up to 3 conditions to generate a Venn diagram of overlapping symptoms. Select just 1 to see all symptoms for that condition.
+</div>
+
+<div class="conditions-grid" id="condGrid"></div>
+
+<div id="venn-area">
+  <div class="placeholder-msg">
+    <span>◎</span>
+    Select conditions above to begin.<br>
+    Overlapping symptoms will appear in shared regions.
+  </div>
+</div>
+
+<div id="detail-panel"></div>
+
+<div class="legend-row" id="legend" style="display:none">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent1)"></div> Condition A</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Condition B</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div> Condition C</div>
+</div>
+
+<footer>
+  Sources: DSM-5 (AuDHD, C-PTSD), ADHD criteria (RSD/ED overlap), 2017 hEDS nosology (Malfait et al.), POTS consensus (Sheldon et al. 2015), MCAS criteria (Valent 2013 / Molderings 2011), TOS clinical review (Sanders 2007), Metabolic Syndrome (ATP III/IDF criteria), cervical radiculopathy (Eubanks 2010), carpal tunnel (AAOS guidelines). Symptom lists reflect peer-reviewed diagnostic criteria; not exhaustive. Suspected conditions marked (?).<br><br>
+  ⚠ This tool is for personal pattern recognition and disability documentation only. It is not a diagnostic instrument.
+</footer>
+
+<script>
+const COLORS = ['#00e5b0', '#4f9cff', '#ff6b8a'];
+const ALPHAS = ['rgba(0,229,176,', 'rgba(79,156,255,', 'rgba(255,107,138,'];
+
+const CONDITIONS = [
+  {
+    id: 'audhd',
+    label: 'AuDHD',
+    full: 'Autism + ADHD',
+    suspected: false,
+    symptoms: [
+      'Executive dysfunction','Sensory sensitivities','Emotional dysregulation',
+      'Hyperfocus / fixation','Social difficulties','Masking & burnout',
+      'Fatigue','Sleep dysfunction','Anxiety','Alexithymia',
+      'Impulsivity','Working memory deficits','Rejection sensitivity',
+      'Interoception deficits','Demand avoidance'
+    ]
+  },
+  {
+    id: 'rsd',
+    label: 'RSD',
+    full: 'Rejection Sensitive Dysphoria',
+    suspected: false,
+    symptoms: [
+      'Emotional dysregulation','Anxiety','Depression','Rejection sensitivity',
+      'Avoidance behaviors','Shame spirals','Impulsivity',
+      'Social difficulties','Low self-esteem','Hypervigilance'
+    ]
+  },
+  {
+    id: 'cptsd',
+    label: 'C-PTSD',
+    full: 'Complex PTSD',
+    suspected: false,
+    symptoms: [
+      'Emotional dysregulation','Anxiety','Depression','Hypervigilance',
+      'Sleep dysfunction','Fatigue','Social difficulties','Dissociation',
+      'Avoidance behaviors','Shame spirals','Somatic symptoms',
+      'Rejection sensitivity','Executive dysfunction','Alexithymia'
+    ]
+  },
+  {
+    id: 'heds',
+    label: 'hEDS (?)',
+    full: 'Hypermobile EDS (suspected)',
+    suspected: true,
+    symptoms: [
+      'Joint hypermobility','Joint pain','Chronic pain','Fatigue',
+      'GI dysfunction','Easy bruising','Subluxations','Proprioception deficits',
+      'Skin hyperextensibility','Poor wound healing','POTS overlap symptoms',
+      'Muscle weakness','Sleep dysfunction'
+    ]
+  },
+  {
+    id: 'pots',
+    label: 'POTS (?)',
+    full: 'Postural Orthostatic Tachycardia (suspected)',
+    suspected: true,
+    symptoms: [
+      'Tachycardia on standing','Lightheadedness / dizziness','Fatigue',
+      'Brain fog','Exercise intolerance','Palpitations','Nausea',
+      'Headaches','Sweating abnormalities','Pre-syncope','Sleep dysfunction',
+      'Anxiety','GI dysfunction'
+    ]
+  },
+  {
+    id: 'mcas',
+    label: 'MCAS (?)',
+    full: 'Mast Cell Activation Syndrome (suspected)',
+    suspected: true,
+    symptoms: [
+      'Allergic-type reactions','Skin flushing / hives','GI dysfunction',
+      'Fatigue','Brain fog','Headaches','Anxiety','Tachycardia on standing',
+      'Nausea','Anaphylactoid episodes','Joint pain'
+    ]
+  },
+  {
+    id: 'tos',
+    label: 'TOS (?)',
+    full: 'Thoracic Outlet Syndrome (suspected)',
+    suspected: true,
+    symptoms: [
+      'Arm / hand pain','Numbness & tingling (arm/hand)','Hand weakness',
+      'Neck pain','Shoulder pain','Poor circulation (arm)','Fatigue (arm use)',
+      'Muscle weakness'
+    ]
+  },
+  {
+    id: 'metsyn',
+    label: 'Metabolic Syndrome',
+    full: 'Metabolic Syndrome / T2DM',
+    suspected: false,
+    symptoms: [
+      'Fatigue','Brain fog','Insulin resistance','Hypertension',
+      'Dyslipidemia','Sleep dysfunction','Neuropathy symptoms',
+      'Exercise intolerance','Weight dysregulation'
+    ]
+  },
+  {
+    id: 'cervrad',
+    label: 'Cervical Radiculopathy',
+    full: 'Cervical Radiculopathy',
+    suspected: false,
+    symptoms: [
+      'Neck pain','Arm / hand pain','Numbness & tingling (arm/hand)',
+      'Hand weakness','Headaches','Muscle spasm','Shoulder pain','Fatigue'
+    ]
+  },
+  {
+    id: 'cts',
+    label: 'Carpal Tunnel',
+    full: 'Carpal Tunnel Syndrome',
+    suspected: false,
+    symptoms: [
+      'Hand / wrist pain','Numbness & tingling (arm/hand)','Hand weakness',
+      'Night pain','Grip weakness','Arm / hand pain'
+    ]
+  },
+  {
+    id: 'arthritis',
+    label: 'Arthritis',
+    full: 'Arthritis (hands/hips/neck)',
+    suspected: false,
+    symptoms: [
+      'Joint pain','Stiffness','Reduced range of motion','Fatigue',
+      'Inflammation','Neck pain','Shoulder pain','Hand / wrist pain'
+    ]
+  },
+  {
+    id: 'cpain',
+    label: 'Chronic Pain',
+    full: 'Chronic Pain Syndrome',
+    suspected: false,
+    symptoms: [
+      'Chronic pain','Fatigue','Sleep dysfunction','Depression','Anxiety',
+      'Brain fog','Executive dysfunction','Social difficulties',
+      'Exercise intolerance','Somatic symptoms'
+    ]
+  }
+];
+
+// Build symptom→condition lookup
+const symMap = {};
+for (const c of CONDITIONS) {
+  for (const s of c.symptoms) {
+    if (!symMap[s]) symMap[s] = [];
+    symMap[s].push(c.id);
+  }
+}
+
+let selected = [];
+
+function getCondById(id) { return CONDITIONS.find(c => c.id === id); }
+
+function renderButtons() {
+  const grid = document.getElementById('condGrid');
+  grid.innerHTML = '';
+  for (const c of CONDITIONS) {
+    const btn = document.createElement('button');
+    const si = selected.indexOf(c.id);
+    btn.className = 'cond-btn' +
+      (si >= 0 ? ` selected-${si}` : '') +
+      (selected.length >= 3 && si < 0 ? ' disabled' : '');
+    btn.textContent = c.label;
+    btn.title = c.full;
+    btn.onclick = () => toggleCondition(c.id);
+    grid.appendChild(btn);
+  }
+  // Clear button
+  if (selected.length > 0) {
+    const clr = document.createElement('button');
+    clr.className = 'btn-clear';
+    clr.textContent = '✕ clear';
+    clr.onclick = () => { selected = []; renderAll(); };
+    grid.appendChild(clr);
+  }
+}
+
+function toggleCondition(id) {
+  const i = selected.indexOf(id);
+  if (i >= 0) {
+    selected.splice(i, 1);
+  } else if (selected.length < 3) {
+    selected.push(id);
+  }
+  renderAll();
+}
+
+function renderAll() {
+  renderButtons();
+  const venn = document.getElementById('venn-area');
+  const detail = document.getElementById('detail-panel');
+  const legend = document.getElementById('legend');
+
+  if (selected.length === 0) {
+    venn.innerHTML = `<div class="placeholder-msg"><span>◎</span>Select conditions above to begin.<br>Overlapping symptoms will appear in shared regions.</div>`;
+    detail.style.display = 'none';
+    legend.style.display = 'none';
+    return;
+  }
+
+  legend.style.display = selected.length > 1 ? 'flex' : 'none';
+
+  if (selected.length === 1) renderSingle(venn, detail);
+  else if (selected.length === 2) renderTwo(venn, detail);
+  else renderThree(venn, detail);
+}
+
+function wrapText(text, maxLen) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    if ((line + ' ' + w).trim().length > maxLen) {
+      if (line) lines.push(line.trim());
+      line = w;
+    } else {
+      line = (line + ' ' + w).trim();
+    }
+  }
+  if (line) lines.push(line.trim());
+  return lines;
+}
+
+function svgTextBlock(x, y, lines, fill, size=9.5, anchor='middle') {
+  return lines.map((l, i) =>
+    `<text x="${x}" y="${y + i * (size + 2)}" fill="${fill}" font-size="${size}" text-anchor="${anchor}" dominant-baseline="middle">${escHtml(l)}</text>`
+  ).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderSingle(venn, detail) {
+  const c = getCondById(selected[0]);
+  const col = COLORS[0];
+  const W = 560, H = 300, cx = W/2, cy = H/2, r = 110;
+
+  // Place symptoms around circle
+  const syms = c.symptoms;
+  const inside = syms.slice(0, Math.min(syms.length, 10));
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${ALPHAS[0]}0.13)" stroke="${col}" stroke-width="1.5"/>`;
+
+  // Title
+  const titleLines = wrapText(c.full, 18);
+  svg += svgTextBlock(cx, cy - 12 + (1-titleLines.length)*6, titleLines, col, 11, 'middle');
+
+  // Symptoms as tspans inside
+  const symLines = inside.flatMap(s => wrapText(s, 20));
+  const sY = cy + 22;
+  svg += `<text x="${cx}" y="${sY}" text-anchor="middle" fill="${col}" font-size="8.5" opacity="0.75">`;
+  inside.forEach((s, i) => {
+    svg += `<tspan x="${cx}" dy="${i===0?0:11}">${escHtml(s)}</tspan>`;
+  });
+  svg += `</text>`;
+
+  // Extra symptoms outside bubble
+  if (syms.length > 10) {
+    svg += `<text x="${cx}" y="${H - 14}" text-anchor="middle" fill="${ALPHAS[0]}0.5)" font-size="9">+${syms.length - 10} more — see below</text>`;
+  }
+
+  svg += `</svg>`;
+  venn.innerHTML = svg;
+
+  // Detail panel
+  detail.style.display = 'flex';
+  detail.innerHTML = `<div class="zone-card" style="border-color:${col}22">
+    <div class="zone-title"><div class="zone-dot" style="background:${col}"></div><span style="color:${col}">${escHtml(c.full)}</span></div>
+    ${c.symptoms.map(s => `<span class="symptom-tag" style="color:${col};border-color:${col}33;background:${ALPHAS[0]}0.08)">${escHtml(s)}</span>`).join('')}
+  </div>`;
+}
+
+function renderTwo(venn, detail) {
+  const [c1, c2] = selected.map(getCondById);
+  const [col1, col2] = COLORS;
+  const W = 600, H = 300;
+  const r = 115, overlap = 70;
+  const cx1 = W/2 - (r - overlap/2), cy1 = H/2;
+  const cx2 = W/2 + (r - overlap/2), cy2 = H/2;
+
+  const s1 = new Set(c1.symptoms), s2 = new Set(c2.symptoms);
+  const only1 = c1.symptoms.filter(s => !s2.has(s));
+  const only2 = c2.symptoms.filter(s => !s1.has(s));
+  const shared = c1.symptoms.filter(s => s2.has(s));
+
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  svg += `<circle cx="${cx1}" cy="${cy1}" r="${r}" fill="${ALPHAS[0]}0.12)" stroke="${col1}" stroke-width="1.5"/>`;
+  svg += `<circle cx="${cx2}" cy="${cy2}" r="${r}" fill="${ALPHAS[1]}0.12)" stroke="${col2}" stroke-width="1.5"/>`;
+
+  // Titles
+  const t1 = wrapText(c1.label, 12);
+  const t2 = wrapText(c2.label, 12);
+  svg += svgTextBlock(cx1 - r/2 - 8, cy1 - 12, t1, col1, 11, 'middle');
+  svg += svgTextBlock(cx2 + r/2 + 8, cy2 - 12, t2, col2, 11, 'middle');
+
+  // Only1 symptoms
+  const o1Show = only1.slice(0, 7);
+  if (o1Show.length) {
+    svg += `<text text-anchor="middle" fill="${col1}" font-size="8.5" opacity="0.8">`;
+    o1Show.forEach((s, i) => {
+      svg += `<tspan x="${cx1 - r/2 - 8}" dy="${i===0 ? cy1 + 10 : 11}">${escHtml(s)}</tspan>`;
+    });
+    svg += `</text>`;
+  }
+
+  // Only2 symptoms
+  const o2Show = only2.slice(0, 7);
+  if (o2Show.length) {
+    svg += `<text text-anchor="middle" fill="${col2}" font-size="8.5" opacity="0.8">`;
+    o2Show.forEach((s, i) => {
+      svg += `<tspan x="${cx2 + r/2 + 8}" dy="${i===0 ? cy2 + 10 : 11}">${escHtml(s)}</tspan>`;
+    });
+    svg += `</text>`;
+  }
+
+  // Shared symptoms in middle
+  const shShow = shared.slice(0, 7);
+  const midX = (cx1 + cx2) / 2;
+  if (shShow.length) {
+    svg += `<text text-anchor="middle" fill="#ffffff" font-size="8.5" opacity="0.9">`;
+    shShow.forEach((s, i) => {
+      svg += `<tspan x="${midX}" dy="${i===0 ? H/2 - (shShow.length * 5.5) + 4 : 11}">${escHtml(s)}</tspan>`;
+    });
+    svg += `</text>`;
+    if (shared.length > 7) {
+      svg += `<text x="${midX}" y="${H - 10}" text-anchor="middle" fill="#ffffff" font-size="8" opacity="0.5">+${shared.length - 7} more shared</text>`;
+    }
+  }
+
+  svg += `</svg>`;
+  venn.innerHTML = svg;
+
+  // Detail cards
+  detail.style.display = 'flex';
+  detail.innerHTML = [
+    { label: c1.full, syms: only1, col: col1, alpha: ALPHAS[0], title: `Only: ${c1.label}` },
+    { label: 'SHARED SYMPTOMS', syms: shared, col: '#ffffff', alpha: 'rgba(255,255,255,', title: 'Both conditions' },
+    { label: c2.full, syms: only2, col: col2, alpha: ALPHAS[1], title: `Only: ${c2.label}` },
+  ].map(z => `<div class="zone-card" style="border-color:${z.col}33">
+    <div class="zone-title"><div class="zone-dot" style="background:${z.col}"></div><span style="color:${z.col};font-size:10px">${escHtml(z.title)}</span></div>
+    ${z.syms.length ? z.syms.map(s => `<span class="symptom-tag" style="color:${z.col};border-color:${z.col}33;background:${z.alpha}0.07)">${escHtml(s)}</span>`).join('') : '<span style="font-size:10px;color:var(--muted)">none</span>'}
+  </div>`).join('');
+}
+
+function renderThree(venn, detail) {
+  const [c1, c2, c3] = selected.map(getCondById);
+  const [col1, col2, col3] = COLORS;
+  const W = 600, H = 360;
+  const r = 105;
+  const cx1 = W/2, cy1 = H/2 - 65;
+  const cx2 = W/2 - 80, cy2 = H/2 + 45;
+  const cx3 = W/2 + 80, cy3 = H/2 + 45;
+
+  const s1 = new Set(c1.symptoms), s2 = new Set(c2.symptoms), s3 = new Set(c3.symptoms);
+  const only1 = c1.symptoms.filter(s => !s2.has(s) && !s3.has(s));
+  const only2 = c2.symptoms.filter(s => !s1.has(s) && !s3.has(s));
+  const only3 = c3.symptoms.filter(s => !s1.has(s) && !s2.has(s));
+  const sh12 = c1.symptoms.filter(s => s2.has(s) && !s3.has(s));
+  const sh13 = c1.symptoms.filter(s => s3.has(s) && !s2.has(s));
+  const sh23 = c2.symptoms.filter(s => s3.has(s) && !s1.has(s));
+  const shAll = c1.symptoms.filter(s => s2.has(s) && s3.has(s));
+
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  svg += `<circle cx="${cx1}" cy="${cy1}" r="${r}" fill="${ALPHAS[0]}0.1)" stroke="${col1}" stroke-width="1.5"/>`;
+  svg += `<circle cx="${cx2}" cy="${cy2}" r="${r}" fill="${ALPHAS[1]}0.1)" stroke="${col2}" stroke-width="1.5"/>`;
+  svg += `<circle cx="${cx3}" cy="${cy3}" r="${r}" fill="${ALPHAS[2]}0.1)" stroke="${col3}" stroke-width="1.5"/>`;
+
+  // Titles outside
+  svg += svgTextBlock(cx1, cy1 - r - 14, wrapText(c1.label, 16), col1, 11, 'middle');
+  svg += svgTextBlock(cx2 - 30, cy2 + r + 14, wrapText(c2.label, 14), col2, 11, 'middle');
+  svg += svgTextBlock(cx3 + 30, cy3 + r + 14, wrapText(c3.label, 14), col3, 11, 'middle');
+
+  // Region labels (symptoms)
+  function placeSyms(cx, cy, syms, col, maxShow=4) {
+    const show = syms.slice(0, maxShow);
+    if (!show.length) return '';
+    let t = `<text text-anchor="middle" fill="${col}" font-size="8" opacity="0.85">`;
+    show.forEach((s, i) => {
+      t += `<tspan x="${cx}" dy="${i===0 ? cy - (show.length-1)*5 : 10}">${escHtml(s)}</tspan>`;
+    });
+    if (syms.length > maxShow) t += `<tspan x="${cx}" dy="10" opacity="0.5">+${syms.length - maxShow}</tspan>`;
+    t += `</text>`;
+    return t;
+  }
+
+  // Unique zones
+  svg += placeSyms(cx1, cy1 - 25, only1, col1);
+  svg += placeSyms(cx2 - 30, cy2 + 15, only2, col2);
+  svg += placeSyms(cx3 + 30, cy3 + 15, only3, col3);
+  // Pairwise
+  svg += placeSyms((cx1+cx2)/2 - 25, (cy1+cy2)/2 + 5, sh12, '#aaddff', 3);
+  svg += placeSyms((cx1+cx3)/2 + 25, (cy1+cy3)/2 + 5, sh13, '#ffbbcc', 3);
+  svg += placeSyms((cx2+cx3)/2, (cy2+cy3)/2 + 15, sh23, '#bbffee', 3);
+  // All three
+  const midX = (cx1+cx2+cx3)/3, midY = (cy1+cy2+cy3)/3;
+  svg += placeSyms(midX, midY, shAll, '#ffffff', 4);
+
+  svg += `</svg>`;
+  venn.innerHTML = svg;
+
+  // Detail cards
+  detail.style.display = 'flex';
+  detail.innerHTML = [
+    { title: `Only: ${c1.label}`, syms: only1, col: col1, a: ALPHAS[0] },
+    { title: `Only: ${c2.label}`, syms: only2, col: col2, a: ALPHAS[1] },
+    { title: `Only: ${c3.label}`, syms: only3, col: col3, a: ALPHAS[2] },
+    { title: `${c1.label} ∩ ${c2.label}`, syms: sh12, col: '#aaddff', a: 'rgba(170,220,255,' },
+    { title: `${c1.label} ∩ ${c3.label}`, syms: sh13, col: '#ffbbcc', a: 'rgba(255,187,204,' },
+    { title: `${c2.label} ∩ ${c3.label}`, syms: sh23, col: '#bbffee', a: 'rgba(187,255,238,' },
+    { title: `All Three`, syms: shAll, col: '#ffffff', a: 'rgba(255,255,255,' },
+  ].filter(z => z.syms.length > 0)
+   .map(z => `<div class="zone-card" style="border-color:${z.col}44">
+    <div class="zone-title"><div class="zone-dot" style="background:${z.col}"></div><span style="color:${z.col};font-size:10px">${escHtml(z.title)}</span></div>
+    ${z.syms.map(s => `<span class="symptom-tag" style="color:${z.col};border-color:${z.col}33;background:${z.a}0.07)">${escHtml(s)}</span>`).join('')}
+  </div>`).join('');
+}
+
+renderAll();
+</script>
+</body>
+</html>

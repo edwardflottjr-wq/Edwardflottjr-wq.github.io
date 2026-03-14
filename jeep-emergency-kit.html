@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeep Emergency Kit — Fort Bragg, CA</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e10;
+    --surface: #131518;
+    --surface2: #1a1d20;
+    --border: #252830;
+    --accent: #e8a020;
+    --accent2: #4a9eda;
+    --danger: #c0392b;
+    --muted: #505560;
+    --text: #c0c8d0;
+    --text-bright: #e0e8f0;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 24px 32px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    margin-bottom: 5px;
+  }
+
+  .progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 300px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .reset-btn {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  .main {
+    padding: 28px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .page-intro {
+    margin-bottom: 24px;
+  }
+
+  .page-intro h2 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: var(--text-bright);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .page-intro p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-top: 6px;
+    max-width: 680px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .alert-box {
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .alert-box strong {
+    font-family: var(--display);
+    font-weight: 700;
+    color: #e05555;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .info-box {
+    background: rgba(232,160,32,0.07);
+    border: 1px solid rgba(232,160,32,0.2);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .info-box strong {
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-bright);
+  }
+
+  .section-count {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .section-progress {
+    height: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .section-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+
+  .section-body { padding: 4px 0; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 7px 16px;
+    border-bottom: 1px solid rgba(37,40,48,0.7);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: rgba(232,160,32,0.04); }
+  .item.checked { opacity: 0.4; }
+
+  .item-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--muted);
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .item.checked .item-checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .item.checked .item-checkbox::after {
+    content: '✓';
+    font-size: 0.7rem;
+    color: #0c0e10;
+    font-weight: bold;
+  }
+
+  .item-text { flex: 1; }
+
+  .item-label {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .item.checked .item-label {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .item-note {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  .item-priority {
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .item-priority.critical { background: rgba(192,57,43,0.2); color: #e05555; border: 1px solid rgba(192,57,43,0.3); }
+  .item-priority.high { background: rgba(232,160,32,0.15); color: #e8a020; border: 1px solid rgba(232,160,32,0.25); }
+
+  .sources {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    line-height: 1.8;
+  }
+
+  .sources strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    .header { padding: 16px; }
+    .main { padding: 16px; }
+    .sections-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="subtitle">// VEHICLE EMERGENCY KIT // FORT BRAGG, CA — MENDOCINO COAST</div>
+      <h1>🚙 Jeep Kit Checklist</h1>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset All</button>
+  </div>
+  <div class="progress-bar-container">
+    <span>OVERALL</span>
+    <div class="progress-bar"><div class="progress-fill" id="overall-fill" style="width:0%"></div></div>
+    <span id="overall-pct">0%</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-intro">
+    <h2>Vehicle Emergency Kit</h2>
+    <p>Your Jeep is also an evacuation platform and a survival base if you're stranded on Hwy 1 or Hwy 20. Coastal terrain, redwood routes, and single-road access make vehicle prep non-negotiable in this region.</p>
+  </div>
+
+  <div class="alert-box">
+    <strong>⚠ Fort Bragg Road Hazard Reality</strong>
+    Hwy 1 and Hwy 20 are both subject to closure during wildfires, mudslides, earthquake damage, and flooding. Hwy 1 has no alternate in many sections. If both primary routes close simultaneously (happened during the 2018 fires), you may be sheltering in your vehicle for 12–48+ hours. Plan accordingly.
+  </div>
+
+  <div class="info-box">
+    <strong>🔧 Jeep Advantage</strong>
+    If yours is a 4WD-capable Jeep, you may have off-road egress options others don't — but only if you have recovery gear and know the terrain. Don't count on going off-road in a wildfire or post-quake scenario unless you've pre-scouted the route.
+  </div>
+
+  <div class="sections-grid" id="sections"></div>
+
+  <div class="sources">
+    <strong>Sources & Basis</strong>
+    AAA Vehicle Emergency Kit Guidelines ·
+    FEMA Ready.gov Vehicle Preparedness ·
+    CAL FIRE Evacuation Preparation Guidance ·
+    Mendocino County OES Road Hazard History ·
+    NHTSA Roadside Emergency Standards ·
+    Red Cross First Aid / Trauma Guidelines ·
+    CDC Wildfire Evacuation Vehicle Prep ·
+    USFS / CAL FIRE — Vehicle as Shelter of Last Resort Protocol
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    title: "Vehicle Health — Non-Negotiables", icon: "🔧",
+    items: [
+      { label: "Fuel: keep tank above half-full at all times during fire/earthquake season", note: "Gas stations lose power in PSPS/disaster. Fort Bragg has limited stations.", priority: "critical" },
+      { label: "Spare tire: confirm it's properly inflated and accessible", priority: "critical" },
+      { label: "Tire jack + lug wrench (know where they are)", priority: "critical" },
+      { label: "Jumper cables (heavy gauge, 20 ft minimum) OR jump starter battery pack", note: "Battery pack preferred — no need for another running vehicle", priority: "critical" },
+      { label: "Tow strap / recovery strap (rated 20,000+ lbs for a Jeep)", priority: "high" },
+      { label: "Basic tool kit: pliers, screwdrivers, adjustable wrench, zip ties, duct tape", priority: "high" },
+      { label: "Fix-a-Flat or portable 12V tire inflator", note: "Useful for slow leaks when you can't do a full tire change safely", priority: "high" },
+      { label: "Quart of motor oil (matching grade)", priority: "" },
+      { label: "Coolant / antifreeze (premixed 50/50)", priority: "" },
+      { label: "WD-40 or penetrating lubricant", priority: "" },
+      { label: "Spare fuses (check your Jeep's fuse box for sizes)", priority: "high" },
+    ]
+  },
+  {
+    title: "Navigation & Communication", icon: "📡",
+    items: [
+      { label: "Paper road atlas: California + Mendocino County detail map", note: "GPS fails when cell towers are down or damaged", priority: "critical" },
+      { label: "Printed evacuation route card (Hwy 20, Hwy 1 N/S, alternate logging roads)", priority: "critical" },
+      { label: "Hand-crank / battery NOAA weather radio", note: "Broadcasts emergency alerts when cell service fails", priority: "critical" },
+      { label: "Portable battery bank (20,000+ mAh) + phone cables", priority: "critical" },
+      { label: "Car charger (USB-A and USB-C, 12V)", priority: "high" },
+      { label: "Whistle + signal mirror (if stranded off-road)", priority: "high" },
+      { label: "Flares or LED road flares x3", priority: "high" },
+    ]
+  },
+  {
+    title: "First Aid & Trauma", icon: "🩹",
+    items: [
+      { label: "Vehicle first aid kit (comprehensive — upgrade the cheap plastic box)", priority: "critical" },
+      { label: "Tourniquet (CAT or SOFTT-W)", note: "Trauma from crashes, earthquake debris, wildfire; EMS may be hours away", priority: "critical" },
+      { label: "Hemostatic gauze (QuikClot or Celox)", priority: "critical" },
+      { label: "Chest seal (Hyfin or similar) — penetrating trauma", priority: "high" },
+      { label: "Emergency mylar blankets x4 (shock / hypothermia)", priority: "high" },
+      { label: "Nitrile gloves x4 pairs", priority: "high" },
+      { label: "SAM splint", priority: "" },
+      { label: "Prescription medications: 3-day supply in vehicle at all times", note: "Separate from go-bag supply. Rotate monthly.", priority: "critical" },
+      { label: "OTC: ibuprofen, antihistamine, antacid, electrolyte packets", priority: "high" },
+    ]
+  },
+  {
+    title: "Fire Safety", icon: "🔥",
+    items: [
+      { label: "Fire extinguisher (ABC-rated, 2.5 lb minimum, mounted accessible)", note: "Wildfires can ignite vehicles. Ember intrusion under hood is real.", priority: "critical" },
+      { label: "N95 masks x6 (NIOSH-approved — smoke inhalation kills)", priority: "critical", note: "Standard surgical masks are not adequate for wildfire smoke (PM2.5)" },
+      { label: "Emergency fire shelter blanket (space blanket type, full-body)", note: "Last-resort vehicle shelter protocol if surrounded by fire", priority: "high" },
+      { label: "Goggles (sealed, not just sunglasses) — ash and smoke eye protection", priority: "high" },
+    ]
+  },
+  {
+    title: "Water & Food", icon: "🥤",
+    items: [
+      { label: "Water: 1 gallon per person minimum in sealed containers", note: "Fort Bragg to Willits is 32 miles. To Ukiah: 62 miles. Roads can be slow.", priority: "critical" },
+      { label: "Collapsible water containers (extra capacity for longer stranding)", priority: "high" },
+      { label: "Water purification tablets (Aquatabs)", priority: "high" },
+      { label: "2,000-calorie food bars (3-day supply per person)", note: "Non-perishable, no prep needed, long shelf life", priority: "high" },
+      { label: "Manual can opener", priority: "" },
+      { label: "Dog water and food (Micco: 1 gallon water/day + 2-day food supply)", priority: "critical" },
+      { label: "Micco's collapsible bowl", priority: "high" },
+    ]
+  },
+  {
+    title: "Light & Power", icon: "🔦",
+    items: [
+      { label: "Headlamp + extra batteries (hands-free is critical)", priority: "critical" },
+      { label: "Handheld flashlight as backup", priority: "high" },
+      { label: "Glow sticks x4 (no fire risk, 12-hr burn)", priority: "" },
+      { label: "Portable jump starter / power bank (dual-purpose: starts car + charges phone)", priority: "critical" },
+      { label: "Solar panel (foldable, small) for extended power outage scenarios", priority: "" },
+    ]
+  },
+  {
+    title: "Shelter & Warmth", icon: "🏕️",
+    items: [
+      { label: "Sleeping bags rated 20°F or lower (2 — one per person)", note: "Fort Bragg nights hit 40s even in summer. Hwy 20 at elevation gets colder.", priority: "high" },
+      { label: "Emergency mylar blankets x4", priority: "high" },
+      { label: "Tarp (10x12, heavy gauge) + paracord", priority: "high" },
+      { label: "Rain ponchos x2", note: "Coastal fog and rain year-round", priority: "high" },
+      { label: "Extra layered clothing + gloves for each person in vehicle", priority: "high" },
+      { label: "Work gloves (leather)", priority: "" },
+    ]
+  },
+  {
+    title: "Sanitation", icon: "🚽",
+    items: [
+      { label: "Toilet paper (partial roll in zip-lock bag)", priority: "high" },
+      { label: "Portable urinal / female urination device", note: "Road closures mean no facilities", priority: "high" },
+      { label: "Waste bags (heavy-duty zip-lock)", priority: "" },
+      { label: "Hand sanitizer (large)", priority: "high" },
+      { label: "Baby wipes / sanitary wipes", priority: "high" },
+    ]
+  },
+  {
+    title: "Documents & Finance (Vehicle Copy)", icon: "📄",
+    items: [
+      { label: "Vehicle registration + proof of insurance (always in glove box)", priority: "critical" },
+      { label: "$200+ cash in small bills — glove box", note: "Gas, food, bribes. Card readers fail in outages.", priority: "critical" },
+      { label: "Copy of go-bag emergency contact list (laminated)", priority: "high" },
+      { label: "Micco's vaccination records (copy in vehicle)", priority: "critical", note: "Required for emergency shelters and pet-friendly hotels" },
+      { label: "Written list: insurance agent, roadside assistance, vet, key contacts", priority: "high" },
+    ]
+  },
+  {
+    title: "Micco — In-Vehicle", icon: "🐕",
+    items: [
+      { label: "Leash clipped to accessible spot (NOT buried in trunk)", priority: "critical" },
+      { label: "Basket muzzle accessible (not in trunk)", priority: "critical", note: "Stressed Akita in a chaotic evacuation = muzzle must be reachable fast" },
+      { label: "Seat belt / vehicle harness or secured crate", note: "Unsecured large dog in a crash = projectile. Also required by CA law (CVC 23117)", priority: "critical" },
+      { label: "Familiar blanket in backseat", priority: "high" },
+      { label: "Collapsible bowl", priority: "" },
+      { label: "1-gallon water + scoop of kibble in vehicle at all times", priority: "critical" },
+      { label: "Waste bags x10 (side door pocket)", priority: "" },
+    ]
+  },
+  {
+    title: "Jeep-Specific / Off-Road", icon: "🛞",
+    items: [
+      { label: "High-lift jack (if clearance allows) for serious recovery", priority: "high" },
+      { label: "Traction boards (MAXTRAX or similar) — mud, sand, debris", priority: "high", note: "Mendocino logging roads and shoulder pullouts can be soft/muddy" },
+      { label: "Shovel (folding / e-tool)", priority: "high" },
+      { label: "Shackles x2 (D-ring, rated 4.75 ton+)", priority: "high" },
+      { label: "Snatch block (doubles pulling power, redirects strap angle)", priority: "" },
+      { label: "Gloves for recovery operations", priority: "high" },
+      { label: "Tire pressure gauge + inflator (aired-down tires for off-road, need to re-air for road)", priority: "high" },
+      { label: "Skid plate / underbody protection confirmed intact (pre-season check)", priority: "high" },
+    ]
+  },
+  {
+    title: "Seasonal / Fort Bragg Specific", icon: "🌊",
+    items: [
+      { label: "KZYX 90.7 FM preset on radio — local emergency broadcast", priority: "critical" },
+      { label: "Printed tsunami inundation map in glove box", priority: "critical", note: "If shaking lasts 20+ sec: drive inland on Hwy 20 immediately, do not wait" },
+      { label: "Mosquito repellent + sunscreen (warm months)", priority: "" },
+      { label: "Rain gear (November–April — consistent coastal rain)", priority: "high" },
+      { label: "Chains or all-season tires (Hwy 20 mountain sections can ice in winter)", priority: "high" },
+      { label: "PG&E outage map bookmarked + PSPS alerts active", priority: "high" },
+      { label: "Shovel for ash/debris clearing post-wildfire", priority: "high" },
+    ]
+  }
+];
+
+function buildSections() {
+  const container = document.getElementById('sections');
+  DATA.forEach((section, si) => {
+    const div = document.createElement('div');
+    div.className = 'section';
+    const total = section.items.length;
+    div.innerHTML = `
+      <div class="section-progress"><div class="section-progress-fill" id="sp-${si}" style="width:0%"></div></div>
+      <div class="section-header" onclick="toggleSection('sb-${si}')">
+        <div class="section-title"><span>${section.icon}</span>${section.title}</div>
+        <span class="section-count" id="sc-${si}">0/${total}</span>
+      </div>
+      <div class="section-body" id="sb-${si}">
+        ${section.items.map((item, ii) => `
+          <div class="item" id="item-${si}-${ii}" onclick="toggleItem(${si}, ${ii})">
+            <div class="item-checkbox"></div>
+            <div class="item-text">
+              <div class="item-label">${item.label}</div>
+              ${item.note ? `<div class="item-note">→ ${item.note}</div>` : ''}
+            </div>
+            ${item.priority ? `<div class="item-priority ${item.priority}">${item.priority}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleSection(id) {
+  const b = document.getElementById(id);
+  b.style.display = b.style.display === 'none' ? '' : 'none';
+}
+
+const state = {};
+
+function toggleItem(si, ii) {
+  const key = `${si}-${ii}`;
+  state[key] = !state[key];
+  const el = document.getElementById(`item-${si}-${ii}`);
+  el.classList.toggle('checked', state[key]);
+  updateSection(si);
+  updateOverall();
+}
+
+function updateSection(si) {
+  const total = DATA[si].items.length;
+  let done = 0;
+  for (let ii = 0; ii < total; ii++) if (state[`${si}-${ii}`]) done++;
+  document.getElementById(`sc-${si}`).textContent = `${done}/${total}`;
+  document.getElementById(`sp-${si}`).style.width = `${(done/total)*100}%`;
+}
+
+function updateOverall() {
+  let total = 0, done = 0;
+  DATA.forEach((s, si) => {
+    s.items.forEach((_, ii) => {
+      total++;
+      if (state[`${si}-${ii}`]) done++;
+    });
+  });
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('overall-fill').style.width = pct + '%';
+  document.getElementById('overall-pct').textContent = pct + '%';
+}
+
+function resetAll() {
+  if (!confirm('Reset all checkboxes?')) return;
+  Object.keys(state).forEach(k => delete state[k]);
+  document.querySelectorAll('.item').forEach(el => el.classList.remove('checked'));
+  DATA.forEach((_, si) => updateSection(si));
+  updateOverall();
+}
+
+buildSections();
+</script>
+</body>
+</html>

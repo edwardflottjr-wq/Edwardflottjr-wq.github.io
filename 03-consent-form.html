@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INK OS — Consent Form Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--surface:#141414;--card:#1a1a1a;--border:#2a2a2a;--gold:#b8965a;--gold-dim:#7a6038;--red:#c0392b;--green:#27ae60;--text:#e0e0e0;--muted:#666;--font-d:'Cinzel',serif;--font-b:'IBM Plex Mono',monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;}
+  nav{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface);}
+  nav a{color:var(--gold-dim);text-decoration:none;font-size:0.7rem;letter-spacing:0.2em;}
+  nav a:hover{color:var(--gold);}
+  .page-title{font-family:var(--font-d);font-size:1.2rem;letter-spacing:0.15em;margin:0 auto;}
+  .layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 53px);}
+  .sidebar{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+  .sidebar-header{padding:1rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:0.5rem;}
+  .search{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font-b);font-size:0.75rem;padding:0.6rem 0.75rem;border-radius:2px;width:100%;}
+  .search:focus{outline:none;border-color:var(--gold-dim);}
+  .btn{background:var(--gold);color:#000;border:none;font-family:var(--font-b);font-size:0.7rem;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;padding:0.6rem 1rem;cursor:pointer;border-radius:2px;transition:background 0.2s;}
+  .btn:hover{background:#d4a96a;}
+  .btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);}
+  .btn-outline:hover{background:var(--gold-dim);color:#000;}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-danger:hover{background:#e74c3c;}
+  .btn-sm{padding:0.35rem 0.65rem;font-size:0.65rem;}
+  .record-list{flex:1;overflow-y:auto;}
+  .record-item{padding:0.85rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+  .record-item:hover{background:var(--surface);}
+  .record-item.active{background:var(--card);border-left:2px solid var(--gold);}
+  .ri-name{font-size:0.82rem;font-weight:500;}
+  .ri-meta{font-size:0.65rem;color:var(--muted);margin-top:0.2rem;}
+  .main{overflow-y:auto;}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;color:var(--muted);}
+  /* Form styles */
+  .form-container{max-width:700px;margin:0 auto;padding:2rem;}
+  .form-section{margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);}
+  .form-section:last-child{border-bottom:none;}
+  .section-title{font-family:var(--font-d);font-size:0.85rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:1.25rem;text-transform:uppercase;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem;}
+  .form-group{display:flex;flex-direction:column;gap:0.4rem;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:0.63rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+  input,select,textarea{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font-b);font-size:0.78rem;padding:0.6rem 0.75rem;border-radius:2px;width:100%;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-dim);}
+  select option{background:var(--card);}
+  .checkbox-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.5rem;}
+  .checkbox-label{display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;cursor:pointer;padding:0.4rem 0.6rem;background:var(--card);border:1px solid var(--border);border-radius:2px;transition:border-color 0.2s;}
+  .checkbox-label:hover{border-color:var(--gold-dim);}
+  .checkbox-label input[type=checkbox]{width:auto;flex-shrink:0;}
+  .sig-area{display:flex;flex-direction:column;gap:0.75rem;}
+  .sig-canvas-wrap{border:1px solid var(--border);border-radius:2px;background:#fff;position:relative;}
+  canvas#sigCanvas{display:block;width:100%;height:120px;cursor:crosshair;touch-action:none;}
+  .sig-controls{display:flex;gap:0.5rem;align-items:center;}
+  .sig-hint{font-size:0.65rem;color:var(--muted);}
+  .consent-text{font-size:0.72rem;line-height:1.8;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:2px;max-height:150px;overflow-y:auto;}
+  .form-actions{display:flex;gap:0.75rem;padding:1.5rem 2rem;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--bg);}
+  /* View/Print mode */
+  .view-container{max-width:700px;margin:0 auto;padding:2rem;}
+  .view-header{text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);}
+  .view-title{font-family:var(--font-d);font-size:1.5rem;letter-spacing:0.2em;color:var(--gold);}
+  .view-subtitle{font-size:0.7rem;letter-spacing:0.2em;color:var(--muted);margin-top:0.5rem;}
+  .view-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+  .view-field{display:flex;flex-direction:column;gap:0.2rem;}
+  .view-label{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+  .view-value{font-size:0.8rem;}
+  .view-sig{border:1px solid var(--border);padding:0.75rem;border-radius:2px;background:var(--card);}
+  .view-sig img{max-width:200px;}
+  .badge{padding:0.15rem 0.4rem;border-radius:2px;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;}
+  .badge-green{background:rgba(39,174,96,0.15);color:var(--green);}
+  .badge-red{background:rgba(192,57,43,0.15);color:var(--red);}
+  @media(max-width:700px){.layout{grid-template-columns:1fr;}.sidebar{height:220px;border-right:none;border-bottom:1px solid var(--border);}.form-row{grid-template-columns:1fr;}.view-grid{grid-template-columns:1fr;}}
+</style>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Consent">
+  <script>
+  (function(){
+    var c=document.createElement('canvas');
+    c.width=c.height=512;
+    var ctx=c.getContext('2d');
+    if(!ctx)return;
+    
+ctx.fillStyle='#0a0a0a';
+ctx.fillRect(0,0,512,512);
+// Document
+ctx.fillStyle='#1e1e1e';
+ctx.strokeStyle='#e0e0e0';
+ctx.lineWidth=10;
+ctx.beginPath();
+ctx.roundRect(100,60,280,360,10);
+ctx.fill();ctx.stroke();
+// Folded corner
+ctx.fillStyle='#0a0a0a';
+ctx.beginPath();ctx.moveTo(310,60);ctx.lineTo(380,60);ctx.lineTo(380,130);ctx.fill();
+ctx.strokeStyle='#e0e0e0';
+ctx.lineWidth=8;
+ctx.beginPath();ctx.moveTo(310,60);ctx.lineTo(310,130);ctx.lineTo(380,130);ctx.stroke();
+// Text lines
+ctx.strokeStyle='#555';
+ctx.lineWidth=6;
+for(let y of [160,195,230,265,300]){
+  ctx.beginPath();ctx.moveTo(130,y);ctx.lineTo(355,y);ctx.stroke();
+}
+// Short last line
+ctx.beginPath();ctx.moveTo(130,335);ctx.lineTo(250,335);ctx.stroke();
+// Signature line gold
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=6;
+ctx.beginPath();ctx.moveTo(100,450);ctx.lineTo(390,450);ctx.stroke();
+// Signature scrawl
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=7;
+ctx.beginPath();
+ctx.moveTo(120,445);ctx.bezierCurveTo(155,415,185,470,220,440);
+ctx.bezierCurveTo(250,415,270,460,310,440);
+ctx.stroke();
+
+    var link=document.createElement('link');
+    link.rel='apple-touch-icon';
+    link.href=c.toDataURL('image/png');
+    document.head.appendChild(link);
+  })();
+  </script>
+</head>
+<body>
+<nav>
+  <a href="index.html">← INK OS</a>
+  <span class="page-title">Consent Forms</span>
+</nav>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <input class="search" type="text" id="searchInput" placeholder="Search records..." oninput="renderList()">
+      <button class="btn" onclick="showForm()">+ New Form</button>
+    </div>
+    <div class="record-list" id="recordList"></div>
+  </div>
+  <div class="main" id="mainPanel">
+    <div class="empty-state">
+      <div style="font-size:3rem;opacity:0.3">✍️</div>
+      <div style="font-size:0.75rem;letter-spacing:0.2em">SELECT OR CREATE A CONSENT FORM</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let records = JSON.parse(localStorage.getItem('ink_consent') || '[]');
+let activeId = null;
+let sigData = null;
+let drawing = false;
+let lastX = 0, lastY = 0;
+
+function save() { localStorage.setItem('ink_consent', JSON.stringify(records)); }
+
+function renderList() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = records.filter(r =>
+    r.clientName.toLowerCase().includes(q) || (r.date||'').includes(q)
+  );
+  const el = document.getElementById('recordList');
+  if (!filtered.length) { el.innerHTML = '<div style="padding:1.5rem;font-size:0.72rem;color:var(--muted);text-align:center">No records</div>'; return; }
+  el.innerHTML = filtered.map(r => `
+    <div class="record-item ${r.id===activeId?'active':''}" onclick="viewRecord('${r.id}')">
+      <div class="ri-name">${r.clientName}</div>
+      <div class="ri-meta">${r.date} · ${r.tattooDesc||'No description'}</div>
+    </div>
+  `).join('');
+}
+
+function showForm(id) {
+  activeId = id||null;
+  const r = id ? records.find(x=>x.id===id) : null;
+  sigData = r?.sig||null;
+
+  document.getElementById('mainPanel').innerHTML = `
+    <div class="form-container">
+      <div class="form-section">
+        <div class="section-title">Client Information</div>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name *</label><input id="c-name" type="text" value="${r?.clientName||''}"></div>
+          <div class="form-group"><label>Date of Birth *</label><input id="c-dob" type="date" value="${r?.dob||''}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>ID Type Confirmed</label>
+            <select id="c-id"><option value="">— not confirmed —</option><option value="DL" ${r?.idType==='DL'?'selected':''}>Driver's License</option><option value="Passport" ${r?.idType==='Passport'?'selected':''}>Passport</option><option value="StateID" ${r?.idType==='StateID'?'selected':''}>State ID</option><option value="Other" ${r?.idType==='Other'?'selected':''}>Other</option></select>
+          </div>
+          <div class="form-group"><label>Date of Appointment</label><input id="c-date" type="date" value="${r?.date||new Date().toISOString().split('T')[0]}"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Tattoo Information</div>
+        <div class="form-row">
+          <div class="form-group"><label>Description</label><input id="t-desc" type="text" placeholder="owl on left forearm" value="${r?.tattooDesc||''}"></div>
+          <div class="form-group"><label>Placement</label><input id="t-placement" type="text" placeholder="left forearm, upper back..." value="${r?.placement||''}"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Medical History</div>
+        <div class="checkbox-grid" id="medChecks">
+          ${[['bloodthinners','Blood thinners / anticoagulants'],['diabetes','Diabetes'],['skinConditions','Skin conditions (eczema, psoriasis)'],['pregnancy','Pregnancy / nursing'],['autoimmune','Autoimmune disorder'],['keloids','Keloid history'],['heartCondition','Heart condition / pacemaker'],['epilepsy','Epilepsy / seizures'],['hivHepatitis','HIV / Hepatitis'],['allergies','Drug / material allergies'],['recentSurgery','Recent surgery (< 6 months)'],['immunocompromised','Immunocompromised']]
+          .map(([val,lbl])=>`<label class="checkbox-label"><input type="checkbox" name="med" value="${val}" ${(r?.medFlags||[]).includes(val)?'checked':''}> ${lbl}</label>`).join('')}
+        </div>
+        <div class="form-group" style="margin-top:0.75rem">
+          <label>Additional Notes</label>
+          <textarea id="c-mednotes" rows="2">${r?.medNotes||''}</textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Acknowledgment & Risks</div>
+        <div class="consent-text">
+          I acknowledge that tattooing is a permanent body modification. I understand that: (1) The appearance of a tattoo can be affected by skin type, placement, sun exposure, and aftercare adherence. (2) Tattoos placed over joints, bony areas, or highly-mobile skin may fade or blur faster. (3) Healing typically takes 2–4 weeks for the surface and up to 4 months for complete dermal healing. (4) There is an inherent risk of allergic reaction to tattoo inks, which cannot be fully predicted by patch testing. (5) I am not under the influence of alcohol or controlled substances. (6) I am voluntarily having this tattoo applied and accept full responsibility for my decision. (7) No guarantees have been made regarding the outcome. (8) I release the artist and studio from liability arising from proper execution of this procedure.
+        </div>
+        <div style="margin-top:0.75rem">
+          <label class="checkbox-label" style="background:transparent;border:none;padding:0"><input type="checkbox" id="c-ack"> I have read and understand the above acknowledgment</label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Client Signature</div>
+        <div class="sig-area">
+          <div class="sig-canvas-wrap">
+            <canvas id="sigCanvas" width="660" height="120"></canvas>
+          </div>
+          <div class="sig-controls">
+            <button class="btn btn-outline btn-sm" onclick="clearSig()">Clear Signature</button>
+            <span class="sig-hint">Draw your signature above</span>
+          </div>
+          ${sigData?`<div class="view-sig"><div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.5rem">Previously saved signature:</div><img src="${sigData}" style="max-width:200px;background:#fff;padding:4px;border-radius:2px"></div>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="saveRecord()">Save Record</button>
+      ${r?`<button class="btn btn-outline" onclick="printRecord('${r.id}')">Print / PDF View</button>`:''}
+      ${r?`<button class="btn btn-danger" onclick="deleteRecord('${r.id}')">Delete</button>`:''}
+    </div>
+  `;
+  initSig();
+  if (r?.ack) document.getElementById('c-ack').checked = true;
+}
+
+function initSig() {
+  const canvas = document.getElementById('sigCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+  }
+
+  canvas.addEventListener('mousedown', e => { drawing=true; const p=getPos(e); lastX=p.x; lastY=p.y; });
+  canvas.addEventListener('mousemove', e => {
+    if (!drawing) return;
+    const p=getPos(e);
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+    lastX=p.x; lastY=p.y;
+  });
+  canvas.addEventListener('mouseup', ()=>{ drawing=false; sigData=canvas.toDataURL(); });
+  canvas.addEventListener('mouseleave', ()=>drawing=false);
+  canvas.addEventListener('touchstart', e=>{ e.preventDefault(); drawing=true; const p=getPos(e); lastX=p.x; lastY=p.y; }, {passive:false});
+  canvas.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    if (!drawing) return;
+    const p=getPos(e);
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+    lastX=p.x; lastY=p.y;
+  }, {passive:false});
+  canvas.addEventListener('touchend', ()=>{ drawing=false; sigData=canvas.toDataURL(); });
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sigCanvas');
+  if (canvas) { canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height); sigData=null; }
+}
+
+function saveRecord() {
+  const name = document.getElementById('c-name')?.value.trim();
+  const dob = document.getElementById('c-dob')?.value;
+  if (!name) { alert('Client name required.'); return; }
+  const medFlags = [...document.querySelectorAll('input[name=med]:checked')].map(cb=>cb.value);
+  const ack = document.getElementById('c-ack')?.checked;
+  const canvas = document.getElementById('sigCanvas');
+  if (canvas && !sigData && canvas.toDataURL()!=='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==') {
+    sigData = canvas.toDataURL();
+  }
+  const data = {
+    clientName: name, dob,
+    idType: document.getElementById('c-id').value,
+    date: document.getElementById('c-date').value,
+    tattooDesc: document.getElementById('t-desc').value.trim(),
+    placement: document.getElementById('t-placement').value.trim(),
+    medFlags, medNotes: document.getElementById('c-mednotes').value.trim(),
+    ack, sig: sigData,
+    timestamp: new Date().toISOString()
+  };
+  if (activeId) {
+    const i = records.findIndex(x=>x.id===activeId);
+    records[i] = { ...records[i], ...data };
+  } else {
+    data.id = Date.now().toString();
+    records.push(data);
+    activeId = data.id;
+  }
+  save(); renderList();
+  alert('Consent form saved successfully.');
+}
+
+function deleteRecord(id) {
+  if (!confirm('Delete this consent record?')) return;
+  records = records.filter(x=>x.id!==id);
+  activeId=null; save(); renderList();
+  document.getElementById('mainPanel').innerHTML = '<div class="empty-state"><div style="font-size:3rem;opacity:0.3">✍️</div><div style="font-size:0.75rem;letter-spacing:0.2em">SELECT OR CREATE A CONSENT FORM</div></div>';
+}
+
+function viewRecord(id) {
+  activeId = id;
+  renderList();
+  const r = records.find(x=>x.id===id);
+  if (!r) return;
+  const medLabels = {bloodthinners:'Blood thinners',diabetes:'Diabetes',skinConditions:'Skin conditions',pregnancy:'Pregnancy/nursing',autoimmune:'Autoimmune',keloids:'Keloid history',heartCondition:'Heart condition',epilepsy:'Epilepsy',hivHepatitis:'HIV/Hepatitis',allergies:'Drug/material allergies',recentSurgery:'Recent surgery',immunocompromised:'Immunocompromised'};
+  const flags = (r.medFlags||[]).map(f=>`<span class="badge badge-red">${medLabels[f]||f}</span>`).join(' ');
+
+  document.getElementById('mainPanel').innerHTML = `
+    <div class="view-container">
+      <div class="view-header">
+        <div class="view-title">CONSENT RECORD</div>
+        <div class="view-subtitle">${r.timestamp ? new Date(r.timestamp).toLocaleString() : ''}</div>
+      </div>
+      <div class="view-grid">
+        <div class="view-field"><span class="view-label">Client Name</span><span class="view-value">${r.clientName}</span></div>
+        <div class="view-field"><span class="view-label">Date of Birth</span><span class="view-value">${r.dob||'—'}</span></div>
+        <div class="view-field"><span class="view-label">ID Confirmed</span><span class="view-value">${r.idType||'—'}</span></div>
+        <div class="view-field"><span class="view-label">Appointment Date</span><span class="view-value">${r.date||'—'}</span></div>
+        <div class="view-field"><span class="view-label">Tattoo Description</span><span class="view-value">${r.tattooDesc||'—'}</span></div>
+        <div class="view-field"><span class="view-label">Placement</span><span class="view-value">${r.placement||'—'}</span></div>
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <div class="view-label" style="margin-bottom:0.5rem">Medical Flags</div>
+        ${flags||'<span style="font-size:0.75rem;color:var(--muted)">None disclosed</span>'}
+      </div>
+      ${r.medNotes?`<div style="margin-bottom:1.5rem"><div class="view-label" style="margin-bottom:0.5rem">Medical Notes</div><div style="font-size:0.78rem;color:var(--muted)">${r.medNotes}</div></div>`:''}
+      <div style="margin-bottom:1.5rem">
+        <div class="view-label" style="margin-bottom:0.5rem">Acknowledgment</div>
+        <span class="badge ${r.ack?'badge-green':'badge-red'}">${r.ack?'✓ Acknowledged':'Not acknowledged'}</span>
+      </div>
+      ${r.sig?`<div style="margin-bottom:1.5rem"><div class="view-label" style="margin-bottom:0.5rem">Signature</div><div class="view-sig"><img src="${r.sig}" style="max-width:250px;background:#fff;padding:8px;border-radius:2px"></div></div>`:'<div style="color:var(--red);font-size:0.72rem">No signature captured</div>'}
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="showForm('${r.id}')">Edit</button>
+      <button class="btn btn-outline" onclick="printView('${r.id}')">Print</button>
+      <button class="btn btn-danger" onclick="deleteRecord('${r.id}')">Delete</button>
+    </div>
+  `;
+}
+
+function printView(id) {
+  const r = records.find(x=>x.id===id);
+  if (!r) return;
+  const w = window.open('','_blank');
+  const medLabels = {bloodthinners:'Blood thinners',diabetes:'Diabetes',skinConditions:'Skin conditions',pregnancy:'Pregnancy/nursing',autoimmune:'Autoimmune',keloids:'Keloid history',heartCondition:'Heart condition',epilepsy:'Epilepsy',hivHepatitis:'HIV/Hepatitis',allergies:'Drug/material allergies',recentSurgery:'Recent surgery',immunocompromised:'Immunocompromised'};
+  const flags = (r.medFlags||[]).map(f=>medLabels[f]||f).join(', ') || 'None';
+  w.document.write(`<!DOCTYPE html><html><head><title>Consent — ${r.clientName}</title><style>
+    body{font-family:Georgia,serif;max-width:700px;margin:40px auto;color:#111;font-size:14px;}
+    h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:24px;}
+    h2{font-size:14px;text-transform:uppercase;letter-spacing:2px;color:#444;margin:20px 0 8px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+    .field{display:flex;flex-direction:column;}
+    .fl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;}
+    .fv{font-size:14px;margin-top:2px;}
+    .consent{font-size:11px;line-height:1.8;border:1px solid #ccc;padding:12px;margin:8px 0;}
+    img{max-width:200px;border:1px solid #ccc;}
+    @media print{body{margin:20px;}}
+  </style></head><body>
+    <h1>TATTOO CONSENT FORM</h1>
+    <div style="font-size:11px;color:#888;margin-bottom:20px">Completed: ${new Date(r.timestamp||'').toLocaleString()}</div>
+    <div class="grid">
+      <div class="field"><span class="fl">Client Name</span><span class="fv">${r.clientName}</span></div>
+      <div class="field"><span class="fl">Date of Birth</span><span class="fv">${r.dob||'—'}</span></div>
+      <div class="field"><span class="fl">ID Confirmed</span><span class="fv">${r.idType||'—'}</span></div>
+      <div class="field"><span class="fl">Appointment Date</span><span class="fv">${r.date||'—'}</span></div>
+      <div class="field"><span class="fl">Tattoo Description</span><span class="fv">${r.tattooDesc||'—'}</span></div>
+      <div class="field"><span class="fl">Placement</span><span class="fv">${r.placement||'—'}</span></div>
+    </div>
+    <h2>Medical Flags</h2><p>${flags}</p>
+    ${r.medNotes?`<h2>Medical Notes</h2><p>${r.medNotes}</p>`:''}
+    <h2>Consent Text</h2>
+    <div class="consent">I acknowledge that tattooing is a permanent body modification. I understand and accept all risks disclosed in the consent form provided. I am not under the influence of alcohol or controlled substances. I release the artist and studio from liability arising from proper execution of this procedure.</div>
+    <p><strong>Acknowledged:</strong> ${r.ack?'Yes':'No'}</p>
+    <h2>Signature</h2>
+    ${r.sig?`<img src="${r.sig}" alt="signature">`:'<p>No signature captured</p>'}
+    <p style="margin-top:40px;font-size:11px;border-top:1px solid #ccc;padding-top:8px;">This form was completed digitally via INK OS on ${new Date(r.timestamp||'').toLocaleDateString()}.</p>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(), 500);
+}
+
+function printRecord(id) { printView(id); }
+
+renderList();
+</script>
+</body>
+</html>

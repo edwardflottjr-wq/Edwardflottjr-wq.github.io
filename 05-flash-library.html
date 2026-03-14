@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INK OS — Flash Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--surface:#141414;--card:#1a1a1a;--border:#2a2a2a;--gold:#b8965a;--gold-dim:#7a6038;--red:#c0392b;--green:#27ae60;--text:#e0e0e0;--muted:#666;--font-d:'Cinzel',serif;--font-b:'IBM Plex Mono',monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;}
+  nav{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface);}
+  nav a{color:var(--gold-dim);text-decoration:none;font-size:0.7rem;letter-spacing:0.2em;}
+  nav a:hover{color:var(--gold);}
+  .page-title{font-family:var(--font-d);font-size:1.2rem;letter-spacing:0.15em;margin:0 auto;}
+  .toolbar{display:flex;align-items:center;gap:0.75rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .btn{background:var(--gold);color:#000;border:none;font-family:var(--font-b);font-size:0.7rem;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;padding:0.55rem 0.9rem;cursor:pointer;border-radius:2px;transition:background 0.2s;}
+  .btn:hover{background:#d4a96a;}
+  .btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);}
+  .btn-outline:hover{background:var(--gold-dim);color:#000;}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-danger:hover{background:#e74c3c;}
+  .btn-sm{padding:0.3rem 0.6rem;font-size:0.65rem;}
+  select,input{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font-b);font-size:0.75rem;padding:0.5rem 0.65rem;border-radius:2px;}
+  select:focus,input:focus{outline:none;border-color:var(--gold-dim);}
+  select option{background:var(--card);}
+  .filter-label{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+  .count-badge{font-size:0.65rem;color:var(--muted);margin-left:auto;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border);padding:0;}
+  .flash-card{background:var(--bg);display:flex;flex-direction:column;cursor:pointer;transition:background 0.15s;position:relative;}
+  .flash-card:hover{background:var(--surface);}
+  .flash-img-wrap{aspect-ratio:1;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;}
+  .flash-img-wrap img{width:100%;height:100%;object-fit:cover;}
+  .flash-no-img{font-size:2.5rem;opacity:0.2;}
+  .flash-info{padding:0.75rem;}
+  .flash-name{font-size:0.78rem;font-weight:500;margin-bottom:0.25rem;}
+  .flash-meta{font-size:0.65rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;}
+  .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .dot-available{background:var(--green);}
+  .dot-claimed{background:var(--gold);}
+  .dot-sold{background:var(--red);}
+  .tag{padding:0.15rem 0.4rem;border-radius:2px;font-size:0.6rem;background:var(--card);border:1px solid var(--border);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--gold);width:100%;max-width:550px;max-height:90vh;overflow-y:auto;border-radius:2px;}
+  .modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .modal-title{font-family:var(--font-d);font-size:1rem;letter-spacing:0.1em;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;}
+  .modal-body{padding:1.5rem;display:flex;flex-direction:column;gap:1rem;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-group{display:flex;flex-direction:column;gap:0.4rem;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:0.63rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+  .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:0.75rem;}
+  .detail-img{width:100%;max-height:300px;object-fit:contain;background:var(--card);border-radius:2px;margin-bottom:1rem;}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem;color:var(--muted);}
+</style>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Flash Library">
+  <script>
+  (function(){
+    var c=document.createElement('canvas');
+    c.width=c.height=512;
+    var ctx=c.getContext('2d');
+    if(!ctx)return;
+    
+ctx.fillStyle='#0a0a0a';
+ctx.fillRect(0,0,512,512);
+// Outer frame
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=16;
+ctx.strokeRect(52,52,408,408);
+// Inner frame
+ctx.strokeStyle='#7a6038';
+ctx.lineWidth=6;
+ctx.strokeRect(80,80,352,352);
+// Image placeholder mountains
+ctx.fillStyle='#1e1e1e';
+ctx.fillRect(86,86,340,340);
+// Sky gradient sim
+ctx.fillStyle='#0a1520';
+ctx.fillRect(86,86,340,170);
+// Mountains
+ctx.fillStyle='#2a2a2a';
+ctx.beginPath();ctx.moveTo(86,256);ctx.lineTo(180,140);ctx.lineTo(280,200);ctx.lineTo(340,140);ctx.lineTo(426,256);ctx.closePath();ctx.fill();
+// Gold lightning bolt top right
+ctx.fillStyle='#b8965a';
+ctx.beginPath();
+ctx.moveTo(360,90);
+ctx.lineTo(330,185);
+ctx.lineTo(355,185);
+ctx.lineTo(318,300);
+ctx.lineTo(375,175);
+ctx.lineTo(348,175);
+ctx.lineTo(390,90);
+ctx.closePath();
+ctx.fill();
+
+    var link=document.createElement('link');
+    link.rel='apple-touch-icon';
+    link.href=c.toDataURL('image/png');
+    document.head.appendChild(link);
+  })();
+  </script>
+</head>
+<body>
+<nav>
+  <a href="index.html">← INK OS</a>
+  <span class="page-title">Flash Library</span>
+</nav>
+<div class="toolbar">
+  <button class="btn" onclick="openModal()">+ Add Flash</button>
+  <span class="filter-label">Filter:</span>
+  <select id="filterStyle" onchange="renderGrid()">
+    <option value="">All Styles</option>
+    <option>Realism</option><option>Portraiture</option><option>Traditional</option>
+    <option>Neo-traditional</option><option>Blackwork</option><option>Linework</option>
+    <option>Watercolor</option><option>Geometric</option><option>Illustrative</option><option>Other</option>
+  </select>
+  <select id="filterStatus" onchange="renderGrid()">
+    <option value="">All Status</option>
+    <option value="available">Available</option>
+    <option value="claimed">Claimed</option>
+    <option value="sold">Sold</option>
+  </select>
+  <input type="text" id="filterSearch" placeholder="Search..." oninput="renderGrid()" style="min-width:140px">
+  <span class="count-badge" id="countBadge">0 designs</span>
+  <button class="btn btn-outline btn-sm" onclick="exportPage()">Export Available →</button>
+</div>
+<div id="flashGrid"></div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="flashModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add Flash</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group full">
+        <label>Image Upload</label>
+        <input type="file" id="f-img" accept="image/*">
+        <div id="imgPreview" style="margin-top:0.5rem"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Design Name *</label><input id="f-name" type="text"></div>
+        <div class="form-group"><label>Style</label>
+          <select id="f-style">
+            <option>Realism</option><option>Portraiture</option><option>Traditional</option>
+            <option>Neo-traditional</option><option>Blackwork</option><option>Linework</option>
+            <option>Watercolor</option><option>Geometric</option><option>Illustrative</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Body Placement</label><input id="f-placement" type="text" placeholder="forearm, calf, ribs..."></div>
+        <div class="form-group"><label>Approximate Size</label><input id="f-size" type="text" placeholder='4–5" / palm-sized'></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Price ($)</label><input id="f-price" type="number" min="0"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-status">
+            <option value="available">Available</option>
+            <option value="claimed">Claimed</option>
+            <option value="sold">Sold</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group full"><label>Notes</label><input id="f-notes" type="text" placeholder="color/BW, min size, etc."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="deleteFlashBtn" style="display:none" onclick="deleteFlash()">Delete</button>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-sm" onclick="saveFlash()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="detailTitle">Flash Detail</span>
+      <button class="modal-close" onclick="document.getElementById('detailModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('detailModal').style.display='none'">Close</button>
+      <button class="btn btn-sm" id="editFromDetail">Edit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let flash = JSON.parse(localStorage.getItem('ink_flash')||'[]');
+let editId = null;
+let pendingImg = null;
+
+function saveF() { localStorage.setItem('ink_flash',JSON.stringify(flash)); }
+
+function renderGrid() {
+  const style = document.getElementById('filterStyle').value;
+  const status = document.getElementById('filterStatus').value;
+  const q = document.getElementById('filterSearch').value.toLowerCase();
+  let filtered = flash.filter(f =>
+    (!style || f.style===style) &&
+    (!status || f.status===status) &&
+    (!q || f.name.toLowerCase().includes(q) || (f.placement||'').toLowerCase().includes(q) || (f.notes||'').toLowerCase().includes(q))
+  );
+  document.getElementById('countBadge').textContent = filtered.length+' design'+(filtered.length!==1?'s':'');
+  if (!filtered.length) {
+    document.getElementById('flashGrid').innerHTML = '<div class="empty-state"><div style="font-size:3rem;opacity:0.3">🎨</div><div style="font-size:0.75rem;letter-spacing:0.2em">NO FLASH YET — ADD YOUR FIRST DESIGN</div></div>';
+    return;
+  }
+  document.getElementById('flashGrid').innerHTML = '<div class="grid">'+filtered.map(f=>`
+    <div class="flash-card" onclick="viewFlash('${f.id}')">
+      <div class="flash-img-wrap">
+        ${f.img?`<img src="${f.img}" alt="${f.name}">`:`<span class="flash-no-img">🖋</span>`}
+      </div>
+      <div class="flash-info">
+        <div class="flash-name">${f.name}</div>
+        <div class="flash-meta">
+          <span class="status-dot dot-${f.status||'available'}"></span>
+          <span>${f.style||''}</span>
+          ${f.price?`<span>$${f.price}</span>`:''}
+        </div>
+        ${f.placement?`<div style="font-size:0.62rem;color:var(--muted);margin-top:0.2rem">${f.placement}</div>`:''}
+      </div>
+    </div>
+  `).join('')+'</div>';
+}
+
+function openModal(id) {
+  editId = id||null;
+  pendingImg = null;
+  const f = id ? flash.find(x=>x.id===id) : null;
+  document.getElementById('modalTitle').textContent = f ? 'Edit Flash' : 'Add Flash';
+  document.getElementById('f-name').value = f?.name||'';
+  document.getElementById('f-style').value = f?.style||'Realism';
+  document.getElementById('f-placement').value = f?.placement||'';
+  document.getElementById('f-size').value = f?.size||'';
+  document.getElementById('f-price').value = f?.price||'';
+  document.getElementById('f-status').value = f?.status||'available';
+  document.getElementById('f-notes').value = f?.notes||'';
+  document.getElementById('imgPreview').innerHTML = f?.img?`<img src="${f.img}" style="max-width:120px;max-height:80px;border-radius:2px;border:1px solid var(--border)" alt="">`:'';
+  document.getElementById('deleteFlashBtn').style.display = f?'inline-flex':'none';
+  document.getElementById('f-img').value='';
+  document.getElementById('flashModal').style.display='flex';
+}
+
+function closeModal() { document.getElementById('flashModal').style.display='none'; }
+
+document.getElementById('f-img').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingImg = e.target.result;
+    document.getElementById('imgPreview').innerHTML = `<img src="${pendingImg}" style="max-width:120px;max-height:80px;border-radius:2px;border:1px solid var(--border)" alt="">`;
+  };
+  reader.readAsDataURL(file);
+});
+
+function saveFlash() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('Design name required.'); return; }
+  const existing = editId ? flash.find(x=>x.id===editId) : null;
+  const data = {
+    name,
+    style: document.getElementById('f-style').value,
+    placement: document.getElementById('f-placement').value.trim(),
+    size: document.getElementById('f-size').value.trim(),
+    price: document.getElementById('f-price').value,
+    status: document.getElementById('f-status').value,
+    notes: document.getElementById('f-notes').value.trim(),
+    img: pendingImg || existing?.img || null
+  };
+  if (editId) {
+    const i = flash.findIndex(x=>x.id===editId);
+    flash[i] = { ...flash[i], ...data };
+  } else {
+    data.id = Date.now().toString();
+    data.addedAt = new Date().toISOString();
+    flash.push(data);
+  }
+  saveF(); closeModal(); renderGrid();
+}
+
+function deleteFlash() {
+  if (!editId || !confirm('Delete this flash design?')) return;
+  flash = flash.filter(x=>x.id!==editId);
+  saveF(); closeModal(); renderGrid();
+}
+
+function viewFlash(id) {
+  const f = flash.find(x=>x.id===id);
+  if (!f) return;
+  document.getElementById('detailTitle').textContent = f.name;
+  document.getElementById('detailBody').innerHTML = `
+    ${f.img?`<img class="detail-img" src="${f.img}" alt="${f.name}">`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div><div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem">Style</div><div style="font-size:0.8rem">${f.style||'—'}</div></div>
+      <div><div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem">Status</div><div style="display:flex;align-items:center;gap:0.4rem"><span class="status-dot dot-${f.status||'available'}"></span><span style="font-size:0.8rem">${(f.status||'available').charAt(0).toUpperCase()+(f.status||'available').slice(1)}</span></div></div>
+      <div><div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem">Placement</div><div style="font-size:0.8rem">${f.placement||'—'}</div></div>
+      <div><div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem">Size</div><div style="font-size:0.8rem">${f.size||'—'}</div></div>
+      <div><div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem">Price</div><div style="font-size:0.8rem">${f.price?'$'+f.price:'—'}</div></div>
+    </div>
+    ${f.notes?`<div style="margin-top:1rem"><div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.25rem">Notes</div><div style="font-size:0.78rem;color:var(--muted)">${f.notes}</div></div>`:''}
+  `;
+  document.getElementById('editFromDetail').onclick = ()=>{ document.getElementById('detailModal').style.display='none'; openModal(id); };
+  document.getElementById('detailModal').style.display='flex';
+}
+
+function exportPage() {
+  const avail = flash.filter(f=>f.status==='available');
+  if (!avail.length) { alert('No available flash to export.'); return; }
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Flash — Available</title><style>
+    body{background:#111;color:#eee;font-family:Georgia,serif;margin:0;padding:2rem;}
+    h1{text-align:center;font-size:2rem;letter-spacing:0.3em;margin-bottom:0.5rem;color:#b8965a;}
+    .sub{text-align:center;font-size:0.8rem;color:#666;margin-bottom:2rem;letter-spacing:0.2em;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+    .card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:2px;overflow:hidden;}
+    .img{aspect-ratio:1;background:#222;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .img img{width:100%;height:100%;object-fit:cover;}
+    .info{padding:12px;}
+    .name{font-size:0.9rem;margin-bottom:4px;}
+    .meta{font-size:0.7rem;color:#888;}
+    .price{color:#b8965a;font-size:0.85rem;margin-top:4px;}
+  </style></head><body>
+    <h1>AVAILABLE FLASH</h1>
+    <div class="sub">DM to claim · ${new Date().toLocaleDateString()}</div>
+    <div class="grid">${avail.map(f=>`<div class="card"><div class="img">${f.img?`<img src="${f.img}" alt="">`:''}</div><div class="info"><div class="name">${f.name}</div><div class="meta">${f.style||''} ${f.placement?'· '+f.placement:''} ${f.size?'· '+f.size:''}</div>${f.price?`<div class="price">$${f.price}</div>`:''}</div></div>`).join('')}</div>
+  </body></html>`);
+  w.document.close();
+}
+
+renderGrid();
+</script>
+</body>
+</html>

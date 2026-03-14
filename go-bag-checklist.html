@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Bag Checklist — Fort Bragg, CA</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f0c;
+    --surface: #161810;
+    --surface2: #1e2118;
+    --border: #2e3228;
+    --accent: #8fb23a;
+    --accent2: #d4841a;
+    --danger: #c0392b;
+    --muted: #5a6050;
+    --text: #c8cfc0;
+    --text-bright: #e8efe0;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 24px 32px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .header .subtitle {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    margin-top: 5px;
+  }
+
+  .threat-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .threat-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    padding: 3px 9px;
+    border-radius: 2px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .threat-tag.high { color: #e05555; border-color: #5a2020; background: #1e1212; }
+  .threat-tag.med { color: #d4841a; border-color: #5a3a10; background: #1e1608; }
+  .threat-tag.low { color: #7ab03a; border-color: #3a5020; background: #111a0e; }
+
+  .progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 300px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-btn .tab-icon { margin-right: 8px; }
+
+  .main {
+    padding: 28px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .person-header {
+    margin-bottom: 24px;
+  }
+
+  .person-header h2 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 2.4rem;
+    color: var(--text-bright);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .person-header .role-tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .person-header p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-top: 6px;
+    max-width: 600px;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-bright);
+  }
+
+  .section-icon {
+    font-size: 1rem;
+  }
+
+  .section-count {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .section-body {
+    padding: 4px 0;
+  }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 7px 16px;
+    border-bottom: 1px solid rgba(46,50,40,0.5);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: rgba(143,178,58,0.04); }
+
+  .item.checked { opacity: 0.45; }
+
+  .item-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--muted);
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .item.checked .item-checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .item.checked .item-checkbox::after {
+    content: '✓';
+    font-size: 0.7rem;
+    color: #0e0f0c;
+    font-weight: bold;
+  }
+
+  .item-text {
+    flex: 1;
+  }
+
+  .item-label {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.4;
+    font-weight: 400;
+  }
+
+  .item.checked .item-label {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .item-note {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  .item-priority {
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .item-priority.critical { background: rgba(192,57,43,0.2); color: #e05555; border: 1px solid rgba(192,57,43,0.3); }
+  .item-priority.high { background: rgba(212,132,26,0.15); color: #d4841a; border: 1px solid rgba(212,132,26,0.25); }
+  .item-priority.std { display: none; }
+
+  .alert-box {
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .alert-box strong {
+    font-family: var(--display);
+    font-weight: 700;
+    color: #e05555;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .info-box {
+    background: rgba(143,178,58,0.07);
+    border: 1px solid rgba(143,178,58,0.2);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .info-box strong {
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .reset-btn {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  .section-progress {
+    height: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .section-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+
+  @media (max-width: 600px) {
+    .header { padding: 16px; }
+    .tabs { padding: 0 8px; }
+    .tab-btn { padding: 12px 14px; font-size: 0.85rem; }
+    .main { padding: 16px; }
+    .sections-grid { grid-template-columns: 1fr; }
+  }
+
+  .sources {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    line-height: 1.8;
+  }
+
+  .sources strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="subtitle">// EMERGENCY PREPAREDNESS // MENDOCINO COUNTY, CA</div>
+      <h1>⚡ Go Bag Checklist</h1>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset All</button>
+  </div>
+  <div class="threat-bar">
+    <span class="threat-tag high">🔴 Earthquake — Mendocino Triple Junction</span>
+    <span class="threat-tag high">🔴 Wildfire — CAL FIRE High Severity Zone</span>
+    <span class="threat-tag high">🔴 Tsunami — NOAA Inundation Zone</span>
+    <span class="threat-tag med">🟠 PSPS Power Outage</span>
+    <span class="threat-tag med">🟠 Flooding — Noyo River</span>
+  </div>
+  <div class="progress-bar-container">
+    <span>OVERALL</span>
+    <div class="progress-bar"><div class="progress-fill" id="overall-fill" style="width:0%"></div></div>
+    <span id="overall-pct">0%</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('ed')"><span class="tab-icon">👤</span>Ed</button>
+  <button class="tab-btn" onclick="switchTab('shannon')"><span class="tab-icon">👤</span>Shannon</button>
+  <button class="tab-btn" onclick="switchTab('micco')"><span class="tab-icon">🐕</span>Micco</button>
+  <button class="tab-btn" onclick="switchTab('shared')"><span class="tab-icon">🎒</span>Shared Bag</button>
+</div>
+
+<div class="main">
+
+  <!-- ED -->
+  <div class="tab-panel active" id="tab-ed">
+    <div class="person-header">
+      <div class="role-tag">// Primary Operator</div>
+      <h2>Ed</h2>
+      <p>Personal bag — assumes a shared household go bag also exists. Focus on your unique needs, documents, and role-specific items.</p>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ Fort Bragg Tsunami Warning</strong>
+      If shaking lasts 20+ seconds OR you hear the ocean roar: DO NOT wait for an official warning. Evacuate immediately inland on Hwy 20 or N. Franklin St to high ground (200+ ft elevation). Estimated inundation arrival: 15–30 min after offshore quake.
+    </div>
+
+    <div class="sections-grid" id="ed-sections">
+      <!-- Sections injected by JS -->
+    </div>
+  </div>
+
+  <!-- SHANNON -->
+  <div class="tab-panel" id="tab-shannon">
+    <div class="person-header">
+      <div class="role-tag">// Secondary Operator</div>
+      <h2>Shannon</h2>
+      <p>Personal bag — mirrors Ed's structure with her own documents, medications, and personal items.</p>
+    </div>
+
+    <div class="sections-grid" id="shannon-sections"></div>
+  </div>
+
+  <!-- MICCO -->
+  <div class="tab-panel" id="tab-micco">
+    <div class="person-header">
+      <div class="role-tag">// Canine — 4yr American Akita</div>
+      <h2>Micco</h2>
+      <p>Akitas are a working breed known for stress-triggered reactivity. Preparation and management are critical at shelters and around other animals.</p>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ Breed-Specific Shelter Warning</strong>
+      Many emergency shelters do NOT accept large/reactive breeds. Pre-identify pet-friendly hotels (101 corridor: Willits, Ukiah, Santa Rosa) and boarding facilities before an emergency. Keep vaccination records on your phone and in Micco's bag.
+    </div>
+
+    <div class="sections-grid" id="micco-sections"></div>
+  </div>
+
+  <!-- SHARED BAG -->
+  <div class="tab-panel" id="tab-shared">
+    <div class="person-header">
+      <div class="role-tag">// Household Shared Bag</div>
+      <h2>Shared Go Bag</h2>
+      <p>One bag for the household — split the weight between Ed and Shannon. Review and refresh every 6 months (rotate food/water, check batteries, update documents).</p>
+    </div>
+
+    <div class="info-box">
+      <strong>📋 Bag Rotation Schedule</strong>
+      Set a calendar reminder every April and October. Replace: water pouches, food bars, batteries. Update: copies of documents, medication lists, phone numbers list.
+    </div>
+
+    <div class="sections-grid" id="shared-sections"></div>
+
+    <div class="sources">
+      <strong>Sources & Basis</strong>
+      FEMA "Build A Kit" (ready.gov/kit) · American Red Cross Emergency Checklist ·
+      NOAA/NWS Tsunami Ready — Fort Bragg/Mendocino County ·
+      CAL FIRE Mendocino Unit — Defensible Space / Evacuation Guidance ·
+      Mendocino County OES (mendocinocounty.org/emergency) ·
+      USGS Mendocino Triple Junction Hazard Assessment ·
+      CDC Emergency Preparedness for People with Special Needs ·
+      AVMA Emergency Preparedness for Pet Owners ·
+      AKC/ASPCA guidance on Akita breed management under stress ·
+      PG&E PSPS preparedness guidelines
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {
+  ed: [
+    {
+      title: "Identity & Documents", icon: "📄",
+      items: [
+        { label: "Government-issued photo ID (driver's license or passport)", priority: "critical" },
+        { label: "Copy of health insurance card (front & back)", priority: "critical" },
+        { label: "Copy of homeowner's/renter's insurance policy number & agent contact", priority: "high" },
+        { label: "Copy of vehicle registration & insurance", priority: "high" },
+        { label: "List of account numbers (bank, credit card — NO full numbers, just last 4)", priority: "high" },
+        { label: "Emergency contact card (laminated): Shannon's numbers, family, neighbors", priority: "critical" },
+        { label: "USB drive with scanned copies of all documents (password-protected)", priority: "high" },
+        { label: "Recent photo of Shannon and Micco (in case separated)", priority: "high" },
+      ]
+    },
+    {
+      title: "Medications & Health", icon: "💊",
+      items: [
+        { label: "7-day supply of all personal prescription medications", note: "Rotate monthly so supply is never expired", priority: "critical" },
+        { label: "Written list: medication names, doses, prescribing doctors, pharmacy contact", priority: "critical" },
+        { label: "OTC pain reliever (ibuprofen or acetaminophen)", priority: "" },
+        { label: "Antihistamine (diphenhydramine/Benadryl)", priority: "" },
+        { label: "Antacid", priority: "" },
+        { label: "Any glasses/contacts + spare pair + contact solution (1 week)", priority: "high" },
+        { label: "Hearing aids + extra batteries (if applicable)", priority: "critical" },
+        { label: "Medical alert info card (blood type, allergies, conditions)", priority: "critical" },
+      ]
+    },
+    {
+      title: "Clothing & Comfort", icon: "👕",
+      items: [
+        { label: "2 changes of weather-appropriate clothing (Fort Bragg is coastal — layers!)", priority: "" },
+        { label: "Sturdy, closed-toe shoes you can walk miles in", priority: "high" },
+        { label: "Rain jacket / poncho (Mendocino coast averages 37\" rain/yr)", priority: "" },
+        { label: "Work gloves (earthquake debris, wildfire ash)", priority: "" },
+        { label: "N95 respirator masks x3 (wildfire smoke + earthquake dust)", priority: "high", note: "NIOSH-approved; standard surgical masks are insufficient for smoke" },
+        { label: "Wool or fleece layer (coastal fog/cold nights)", priority: "" },
+        { label: "Hat (sun + ember protection)", priority: "" },
+      ]
+    },
+    {
+      title: "Personal Hygiene", icon: "🧴",
+      items: [
+        { label: "Toothbrush + travel toothpaste", priority: "" },
+        { label: "Travel soap + small towel (microfiber)", priority: "" },
+        { label: "Toilet paper (partial roll in zip-lock)", priority: "" },
+        { label: "Hand sanitizer (60%+ alcohol)", priority: "" },
+        { label: "Feminine hygiene items (if applicable)", priority: "" },
+        { label: "Deodorant", priority: "" },
+        { label: "Lip balm with SPF", priority: "" },
+      ]
+    },
+    {
+      title: "Tools & Safety — Personal", icon: "🔦",
+      items: [
+        { label: "Headlamp + extra batteries (hands-free is critical in darkness)", priority: "high" },
+        { label: "Work gloves (leather or heavy duty)", priority: "" },
+        { label: "Paracord (25 ft)", priority: "" },
+        { label: "Emergency whistle (signaling, 100dB+)", priority: "high" },
+        { label: "Dust/N95 mask x3 (see above)", priority: "" },
+        { label: "Compact multi-tool (Leatherman-style)", priority: "" },
+      ]
+    },
+    {
+      title: "Communication & Awareness", icon: "📡",
+      items: [
+        { label: "Battery or hand-crank NOAA weather radio", note: "Critical for tsunami/fire warnings when cell towers are down", priority: "critical" },
+        { label: "Fully-charged portable phone battery bank (20,000+ mAh)", priority: "high" },
+        { label: "Phone charging cable (USB-C and/or Lightning)", priority: "high" },
+        { label: "Downloaded offline maps of Mendocino County (Google Maps / Gaia GPS)", note: "Download BEFORE emergency, cell data unavailable in disaster", priority: "high" },
+        { label: "Written evacuation routes from home (Hwy 20 inland, Hwy 1 N/S alternates)", priority: "critical" },
+        { label: "Mendocino County OES alert registration (mymendocino.org) — confirm active", priority: "critical" },
+        { label: "Backup list of 10 key phone numbers (written on paper)", note: "You won't remember numbers if your phone dies", priority: "high" },
+      ]
+    }
+  ],
+
+  shannon: [
+    {
+      title: "Identity & Documents", icon: "📄",
+      items: [
+        { label: "Government-issued photo ID (driver's license or passport)", priority: "critical" },
+        { label: "Copy of health insurance card (front & back)", priority: "critical" },
+        { label: "Copy of homeowner's/renter's insurance (same policy as Ed)", priority: "high" },
+        { label: "Emergency contact card (Ed's numbers, family, neighbors) — laminated", priority: "critical" },
+        { label: "USB drive with scanned copies of all documents (password-protected)", priority: "high" },
+        { label: "Recent photo of Ed and Micco (in case separated)", priority: "high" },
+        { label: "Vehicle registration & insurance copy", priority: "high" },
+      ]
+    },
+    {
+      title: "Medications & Health", icon: "💊",
+      items: [
+        { label: "7-day supply of all personal prescription medications", note: "Rotate monthly", priority: "critical" },
+        { label: "Written list: medication names, doses, prescribing doctors, pharmacy", priority: "critical" },
+        { label: "OTC pain reliever (ibuprofen or acetaminophen)", priority: "" },
+        { label: "Antihistamine (Benadryl)", priority: "" },
+        { label: "Antacid", priority: "" },
+        { label: "Any glasses/contacts + spare + contact solution", priority: "high" },
+        { label: "Medical alert info card (blood type, allergies, conditions)", priority: "critical" },
+        { label: "Feminine hygiene items (5-day supply)", priority: "high" },
+      ]
+    },
+    {
+      title: "Clothing & Comfort", icon: "👕",
+      items: [
+        { label: "2 changes of weather-appropriate layered clothing", priority: "" },
+        { label: "Sturdy, closed-toe shoes (not flip-flops — debris hazard)", priority: "high" },
+        { label: "Rain jacket / poncho", priority: "" },
+        { label: "Work gloves", priority: "" },
+        { label: "N95 respirator masks x3 (NIOSH-approved)", priority: "high" },
+        { label: "Wool or fleece layer", priority: "" },
+        { label: "Hat (sun + embers)", priority: "" },
+      ]
+    },
+    {
+      title: "Personal Hygiene", icon: "🧴",
+      items: [
+        { label: "Toothbrush + travel toothpaste", priority: "" },
+        { label: "Travel soap + microfiber towel", priority: "" },
+        { label: "Toilet paper (partial roll in zip-lock)", priority: "" },
+        { label: "Hand sanitizer", priority: "" },
+        { label: "Deodorant", priority: "" },
+        { label: "Lip balm with SPF", priority: "" },
+        { label: "Any skincare essentials (minimal — just what you NEED)", priority: "" },
+      ]
+    },
+    {
+      title: "Tools & Safety — Personal", icon: "🔦",
+      items: [
+        { label: "Headlamp + extra batteries", priority: "high" },
+        { label: "Emergency whistle (100dB+)", priority: "high" },
+        { label: "Compact multi-tool", priority: "" },
+        { label: "Paracord (25 ft)", priority: "" },
+      ]
+    },
+    {
+      title: "Communication & Power", icon: "📡",
+      items: [
+        { label: "Fully-charged portable battery bank (20,000+ mAh)", priority: "high" },
+        { label: "Phone charging cables", priority: "high" },
+        { label: "Written evacuation routes from home", priority: "critical" },
+        { label: "Written backup phone numbers (10 key contacts)", priority: "high" },
+        { label: "Offline maps downloaded on phone", priority: "high" },
+        { label: "Confirm active signup on mymendocino.org emergency alerts", priority: "critical" },
+      ]
+    }
+  ],
+
+  micco: [
+    {
+      title: "Food & Water", icon: "🍖",
+      items: [
+        { label: "7-day supply of Micco's regular dry food (in sealed waterproof bag)", note: "Sudden diet changes cause GI stress. Use his normal brand.", priority: "critical" },
+        { label: "Collapsible food and water bowls", priority: "high" },
+        { label: "Water: 1 gallon per day for a large Akita (~90+ lbs)", note: "More in heat/exertion. 3-day minimum in bag, refill from household supply.", priority: "critical" },
+        { label: "Treats (familiar, calming — useful for compliance under stress)", priority: "" },
+        { label: "Manual can opener if any wet food is packed", priority: "" },
+      ]
+    },
+    {
+      title: "Safety & Restraint", icon: "🔗",
+      items: [
+        { label: "Primary collar with current ID tag (name, phone number)", priority: "critical" },
+        { label: "Backup slip lead leash", priority: "critical" },
+        { label: "2x standard 6-ft leashes (one spare)", priority: "high" },
+        { label: "Basket muzzle (properly fitted)", note: "CRITICAL for Akita breed. Stressed dogs of any breed may bite. Basket muzzle allows panting. Acclimate Micco to it BEFORE emergency.", priority: "critical" },
+        { label: "Front-clip harness (extra control under stress)", priority: "high" },
+        { label: "Long line (15–20 ft) for secure outdoor rest areas", priority: "" },
+        { label: "Reflective vest or light-up collar for nighttime visibility", priority: "high" },
+      ]
+    },
+    {
+      title: "Medical & Identification", icon: "🏥",
+      items: [
+        { label: "Physical copies of vaccination records (Rabies is legally required at shelters)", priority: "critical", note: "Photo on phone AND paper copy" },
+        { label: "Written list: Micco's vet name, clinic address, phone number", priority: "critical" },
+        { label: "List of any medications, doses, schedule", priority: "critical" },
+        { label: "Microchip number written on card (confirm chip is registered to current address)", priority: "critical" },
+        { label: "Recent clear photo of Micco (for lost pet flyers)", priority: "high" },
+        { label: "Frontline/flea-tick preventative (1 month supply)", priority: "" },
+        { label: "Dog first aid kit: gauze, vet wrap, antiseptic wipes, tweezers, styptic powder", priority: "high" },
+        { label: "Benadryl (diphenhydramine) for allergic reactions — confirm dose with vet (~1mg/lb)", priority: "high" },
+      ]
+    },
+    {
+      title: "Comfort & Behavior", icon: "🧸",
+      items: [
+        { label: "Familiar blanket or item with home scent (reduces anxiety)", priority: "high" },
+        { label: "Favorite toy (compact)", priority: "" },
+        { label: "DAP (Dog Appeasing Pheromone) spray or collar (Adaptil)", note: "Evidence-based anxiety reduction. Studies: Landsberg et al., JAVMA 2015", priority: "high" },
+        { label: "High-value chew (bully stick, Kong with frozen filling pre-made)", note: "Directed chewing reduces stress and prevents redirected aggression", priority: "" },
+        { label: "Written behavioral notes: known triggers, commands Micco responds to, warning signs", priority: "high", note: "For anyone who may need to handle Micco if you're incapacitated" },
+      ]
+    },
+    {
+      title: "Shelter & Logistics", icon: "🏕️",
+      items: [
+        { label: "List of pet-friendly hotels: Willits, Ukiah, Cloverdale, Santa Rosa (pre-researched)", priority: "critical", note: "Call ahead in disaster — rooms fill fast" },
+        { label: "List of emergency boarding facilities in Mendocino/Sonoma County", priority: "critical" },
+        { label: "Collapsible or soft-sided crate (if vehicle permits)", priority: "high" },
+        { label: "Dog waste bags (30+)", priority: "" },
+        { label: "Waterproof booties (optional but helpful: earthquake rubble, hot ash)", priority: "" },
+      ]
+    },
+    {
+      title: "Evacuation Planning", icon: "🗺️",
+      items: [
+        { label: "Practice loading Micco into vehicle calmly (drill this)", priority: "critical", note: "A panicked 100-lb Akita in a crisis is dangerous. Rehearsal matters." },
+        { label: "Confirm Micco's go-word / vehicle cue command", priority: "high" },
+        { label: "Have a 'Micco handler' backup — a person who knows him if you're separated", priority: "critical" },
+        { label: "Mendocino County Animal Shelter emergency number saved in phone", priority: "high" },
+        { label: "PETS911.com bookmarked for lost animal search in disaster", priority: "" },
+      ]
+    }
+  ],
+
+  shared: [
+    {
+      title: "Water", icon: "💧",
+      items: [
+        { label: "Minimum 1 gallon/person/day × 3 days minimum (6 gallons for 2 people)", priority: "critical", note: "FEMA minimum. 2 weeks recommended for earthquake/wildfire scenario." },
+        { label: "Water purification tablets (Aquatabs / Potable Aqua)", priority: "high", note: "Backup if stored water is exhausted; boiling preferred if possible" },
+        { label: "Portable water filter (e.g. Sawyer Squeeze or LifeStraw)", priority: "high" },
+        { label: "Stainless steel water bottles x2 (can boil in if needed)", priority: "" },
+      ]
+    },
+    {
+      title: "Food", icon: "🥫",
+      items: [
+        { label: "3-day calorie-dense food supply (minimum 2,000 cal/person/day)", priority: "critical", note: "SOS food bars, Mountain House meals, or similar long-shelf-life" },
+        { label: "Manual can opener", priority: "high" },
+        { label: "Utensils: spork x2, small camp pot", priority: "" },
+        { label: "Camp stove with fuel canister (butane or propane)", note: "Use ONLY outdoors. DO NOT use indoors — CO poisoning risk.", priority: "high" },
+        { label: "Waterproof matches + lighter x2", priority: "high" },
+      ]
+    },
+    {
+      title: "First Aid", icon: "🩹",
+      items: [
+        { label: "Comprehensive first aid kit: adhesive bandages (various sizes)", priority: "critical" },
+        { label: "Sterile gauze pads + roller gauze", priority: "critical" },
+        { label: "Medical tape (cloth)", priority: "high" },
+        { label: "Elastic bandage (ACE wrap)", priority: "" },
+        { label: "Antiseptic wipes + antiseptic solution (Betadine)", priority: "high" },
+        { label: "Tweezers + small scissors", priority: "" },
+        { label: "Nitrile gloves (3 pairs)", priority: "high" },
+        { label: "CPR face shield or pocket mask", priority: "high" },
+        { label: "Tourniquet (CAT or SOFTT-W) — know how to use it", priority: "high", note: "Earthquake/wildfire injuries; trauma happens before EMS arrives" },
+        { label: "Hemostatic gauze (QuikClot or Celox)", priority: "high" },
+        { label: "SAM splint", priority: "" },
+        { label: "Burn dressing (wildfire / structure fire hazard)", priority: "high" },
+        { label: "Eye wash solution", priority: "" },
+        { label: "Thermometer", priority: "" },
+        { label: "First aid manual (laminated or waterproof)", priority: "" },
+      ]
+    },
+    {
+      title: "Power & Light", icon: "🔋",
+      items: [
+        { label: "Battery bank x2 (20,000+ mAh each — one per person)", priority: "critical" },
+        { label: "Headlamps x2 + extra batteries (AA/AAA depending on model)", priority: "critical" },
+        { label: "Hand-crank / solar NOAA weather radio", priority: "critical", note: "NOAA All-Hazards broadcasts: tsunami, wildfire, flood warnings when cell is down" },
+        { label: "Extra battery supply: AA, AAA, CR2032 (check all device types)", priority: "high" },
+        { label: "Glow sticks x6 (chemical light — no fire risk, 12hr duration)", priority: "" },
+        { label: "Solar lantern (collapsible)", priority: "" },
+      ]
+    },
+    {
+      title: "Tools & Shelter", icon: "🛠️",
+      items: [
+        { label: "Adjustable wrench + pliers (to shut off gas valve after earthquake)", priority: "critical", note: "Know where your gas shutoff is BEFORE an earthquake. Mark it now." },
+        { label: "Gas shutoff location noted on property card", priority: "critical" },
+        { label: "Duct tape (heavy-duty, 1 roll)", priority: "high" },
+        { label: "Tarp (10x12 minimum, heavy-gauge)", priority: "high" },
+        { label: "Paracord (50 ft)", priority: "" },
+        { label: "Emergency mylar blankets x4 (compact, reflect 90% body heat)", priority: "high" },
+        { label: "Sleeping bags rated for 20°F or lower", note: "Fort Bragg nights drop into the 40s even in summer", priority: "high" },
+        { label: "Tent or bivy (lightweight 2-person minimum)", priority: "high" },
+        { label: "Work gloves x2 (leather/heavy-duty)", priority: "high" },
+        { label: "Pry bar / crowbar (earthquake entrapment, debris removal)", priority: "high" },
+        { label: "Folding saw or hatchet (trail clearing, wood)", priority: "" },
+        { label: "Zip ties x20 assorted", priority: "" },
+      ]
+    },
+    {
+      title: "Sanitation", icon: "🚽",
+      items: [
+        { label: "Toilet paper (2 rolls in waterproof bag)", priority: "high" },
+        { label: "Portable toilet or 5-gallon bucket with lid + toilet seat adapter", priority: "high" },
+        { label: "Waste bags (heavy-duty, for bucket toilet use)", priority: "high" },
+        { label: "Hand sanitizer x2 (large bottles)", priority: "critical" },
+        { label: "Biodegradable soap", priority: "" },
+        { label: "Feminine hygiene supplies (5-day supply for Shannon)", priority: "critical" },
+        { label: "Baby wipes / sanitary wipes (100 count)", priority: "high" },
+        { label: "Small shovel / trowel (latrine digging if needed)", priority: "" },
+      ]
+    },
+    {
+      title: "Finance & Cash", icon: "💵",
+      items: [
+        { label: "$300–500 cash in small bills ($1, $5, $10, $20)", priority: "critical", note: "ATMs/card readers fail in power outages. Cash is king in disasters." },
+        { label: "Quarters/change for pay phones or vending machines", priority: "" },
+        { label: "List of account numbers and bank 1-800 numbers (written, not digital only)", priority: "high" },
+      ]
+    },
+    {
+      title: "Local Fort Bragg Specifics", icon: "🗺️",
+      items: [
+        { label: "Printed tsunami inundation map (CA OES: coastal evac zones)", priority: "critical", note: "Download from: tsunami.ca.gov" },
+        { label: "Printed wildfire evacuation zone map (Mendocino County GIS)", priority: "critical" },
+        { label: "Inland rally point designated and communicated to family/friends", priority: "critical", note: "Suggest: Willits or Ukiah — both on Hwy 101, inland, on higher ground" },
+        { label: "Mendocino County OES: (707) 463-4221 — saved and written", priority: "critical" },
+        { label: "Noyo Harbor / Coast Guard Station Fort Bragg: (707) 964-2131", priority: "high" },
+        { label: "Mendocino County Animal Care: (707) 463-4493", priority: "high" },
+        { label: "CAL FIRE Mendocino Unit Emergency: 911 / (707) 459-7414", priority: "critical" },
+        { label: "KZYX 90.7 FM — local emergency broadcast radio station", note: "Will broadcast emergency info if cell/internet is down", priority: "high" },
+        { label: "Alternate routes studied: Hwy 20 (to Willits), Hwy 1 N (to Leggett), Hwy 1 S (to Bodega Bay)", priority: "critical" },
+        { label: "PG&E PSPS alerts enabled (pge.com/mywildfirealerts)", priority: "high" },
+      ]
+    }
+  ]
+};
+
+function buildSections(containerId, personKey) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const sections = DATA[personKey];
+
+  sections.forEach((section, si) => {
+    const div = document.createElement('div');
+    div.className = 'section';
+    const total = section.items.length;
+    div.innerHTML = `
+      <div class="section-progress"><div class="section-progress-fill" id="sp-${personKey}-${si}" style="width:0%"></div></div>
+      <div class="section-header" onclick="toggleSection('sb-${personKey}-${si}')">
+        <div class="section-title">
+          <span class="section-icon">${section.icon}</span>
+          ${section.title}
+        </div>
+        <span class="section-count" id="sc-${personKey}-${si}">0/${total}</span>
+      </div>
+      <div class="section-body" id="sb-${personKey}-${si}">
+        ${section.items.map((item, ii) => `
+          <div class="item" id="item-${personKey}-${si}-${ii}" onclick="toggleItem('${personKey}', ${si}, ${ii})">
+            <div class="item-checkbox"></div>
+            <div class="item-text">
+              <div class="item-label">${item.label}</div>
+              ${item.note ? `<div class="item-note">→ ${item.note}</div>` : ''}
+            </div>
+            ${item.priority && item.priority !== '' ? `<div class="item-priority ${item.priority}">${item.priority}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+const state = {};
+
+function toggleItem(person, si, ii) {
+  const key = `${person}-${si}-${ii}`;
+  state[key] = !state[key];
+  const el = document.getElementById(`item-${person}-${si}-${ii}`);
+  if (state[key]) el.classList.add('checked');
+  else el.classList.remove('checked');
+  updateProgress(person, si);
+  updateOverall();
+}
+
+function updateProgress(person, si) {
+  const total = DATA[person][si].items.length;
+  let done = 0;
+  for (let ii = 0; ii < total; ii++) {
+    if (state[`${person}-${si}-${ii}`]) done++;
+  }
+  document.getElementById(`sc-${person}-${si}`).textContent = `${done}/${total}`;
+  document.getElementById(`sp-${person}-${si}`).style.width = `${(done/total)*100}%`;
+}
+
+function updateOverall() {
+  let total = 0, done = 0;
+  ['ed','shannon','micco','shared'].forEach(p => {
+    DATA[p].forEach((section, si) => {
+      section.items.forEach((_, ii) => {
+        total++;
+        if (state[`${p}-${si}-${ii}`]) done++;
+      });
+    });
+  });
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('overall-fill').style.width = pct + '%';
+  document.getElementById('overall-pct').textContent = pct + '%';
+}
+
+function resetAll() {
+  if (!confirm('Reset all checkboxes?')) return;
+  Object.keys(state).forEach(k => delete state[k]);
+  document.querySelectorAll('.item').forEach(el => el.classList.remove('checked'));
+  ['ed','shannon','micco','shared'].forEach(p => {
+    DATA[p].forEach((section, si) => {
+      const total = section.items.length;
+      document.getElementById(`sc-${p}-${si}`).textContent = `0/${total}`;
+      document.getElementById(`sp-${p}-${si}`).style.width = '0%';
+    });
+  });
+  updateOverall();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.closest('.tab-btn').classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// Init
+['ed','shannon','micco','shared'].forEach(p => buildSections(`${p}-sections`, p));
+updateOverall();
+</script>
+</body>
+</html>

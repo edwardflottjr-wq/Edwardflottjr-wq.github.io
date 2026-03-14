@@ -2,899 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Quest Log">
-<meta name="theme-color" content="#0a0a0f">
-<title>Quest Log</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INK OS — Tattoo Artist Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --gold-dim: #7a5e20;
-    --ink: #0a0a0f;
-    --parchment: #f5edd6;
-    --parchment-dark: #e8d9b8;
-    --stone: #1a1820;
-    --stone-light: #252230;
-    --rune: #4a9eff;
-    --rune-glow: #2266cc;
-    --health: #e05555;
-    --forest: #4caf7d;
-    --shadow: rgba(0,0,0,0.7);
-    --text-main: #f0e6cc;
-    --text-dim: #8a7a5a;
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --border: #2a2a2a;
+    --gold: #b8965a;
+    --gold-dim: #7a6038;
+    --red: #c0392b;
+    --text: #e0e0e0;
+    --muted: #666;
+    --font-display: 'Cinzel', serif;
+    --font-body: 'IBM Plex Mono', monospace;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: var(--ink);
-    color: var(--text-main);
-    font-family: 'Crimson Pro', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
     min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    position: relative;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(184,150,90,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(192,57,43,0.03) 0%, transparent 50%);
   }
-
-  /* Atmospheric background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, #1a1430 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 80% 80%, #0d1a0d 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 20% 70%, #1a0d0d 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Grain overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  #app {
-    position: relative;
-    z-index: 1;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 0 0 100px;
-  }
-
-  /* ── HEADER ── */
-  .header {
-    text-align: center;
-    padding: 36px 20px 24px;
-    position: relative;
-  }
-
-  .header-ornament {
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-    font-family: 'Cinzel', serif;
-    margin-bottom: 12px;
-  }
-
-  .header h1 {
-    font-family: 'Cinzel', serif;
-    font-weight: 900;
-    font-size: 32px;
-    color: var(--gold-light);
-    letter-spacing: 3px;
-    text-shadow: 0 0 30px rgba(201,168,76,0.3), 0 2px 4px rgba(0,0,0,0.8);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .header-sub {
-    font-size: 13px;
-    color: var(--text-dim);
-    font-style: italic;
-    letter-spacing: 1px;
-  }
-
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 20px;
-    margin: 4px 0 20px;
-  }
-
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-  }
-
-  .divider-gem {
-    width: 6px;
-    height: 6px;
-    background: var(--gold);
-    transform: rotate(45deg);
-    box-shadow: 0 0 8px var(--gold);
-  }
-
-  /* ── SCORE CRYSTAL ── */
-  .score-crystal {
-    margin: 0 20px 24px;
-    background: linear-gradient(145deg, #1e1a2e, #0f0e18);
-    border: 1px solid var(--gold-dim);
-    border-radius: 16px;
-    padding: 24px 20px;
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
     text-align: center;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 0 40px rgba(201,168,76,0.08), inset 0 1px 0 rgba(201,168,76,0.15);
   }
-
-  .score-crystal::before {
+  header::before {
     content: '';
     position: absolute;
-    top: -40%;
-    left: -20%;
-    width: 140%;
-    height: 80%;
-    background: radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, transparent 70%);
-    pointer-events: none;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
   }
-
-  .score-label {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 4px;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  .score-value {
-    font-family: 'Cinzel', serif;
-    font-size: 80px;
+  .logo {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 5rem);
     font-weight: 900;
+    letter-spacing: 0.3em;
+    background: linear-gradient(135deg, var(--gold), #fff, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1;
-    color: var(--gold-light);
-    text-shadow: 0 0 40px rgba(201,168,76,0.4), 0 0 80px rgba(201,168,76,0.15);
-    position: relative;
-    display: inline-block;
   }
-
-  .score-pts {
-    font-family: 'Cinzel', serif;
-    font-size: 14px;
-    color: var(--gold-dim);
-    letter-spacing: 3px;
-    margin-top: 2px;
-  }
-
-  .flash-popup {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-family: 'Cinzel', serif;
-    font-size: 28px;
-    font-weight: 900;
-    color: var(--forest);
-    text-shadow: 0 0 20px var(--forest);
-    animation: flashPop 1s ease-out forwards;
-    pointer-events: none;
-  }
-
-  @keyframes flashPop {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    40% { transform: translateY(-20px) scale(1.3); opacity: 1; }
-    100% { transform: translateY(-40px) scale(1); opacity: 0; }
-  }
-
-  .next-reward-hint {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--rune);
-    font-style: italic;
-    letter-spacing: 0.5px;
-  }
-
-  .all-unlocked {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--forest);
-    font-style: italic;
-  }
-
-  /* ── REWARDS ── */
-  .section-title {
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--gold-dim);
+  .tagline {
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    color: var(--muted);
     text-transform: uppercase;
-    padding: 0 20px;
-    margin-bottom: 12px;
+    margin-top: 0.5rem;
   }
-
-  .rewards-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 20px;
-    margin-bottom: 28px;
-  }
-
-  .reward-bar {
-    background: var(--stone);
-    border: 1px solid #2a2540;
-    border-radius: 12px;
-    padding: 14px 16px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s, box-shadow 0.3s;
-  }
-
-  .reward-bar.unlocked {
-    border-color: var(--gold-dim);
-    box-shadow: 0 0 20px rgba(201,168,76,0.1);
-  }
-
-  .reward-bar-fill {
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    opacity: 0.08;
-    transition: width 0.8s cubic-bezier(.4,0,.2,1);
-  }
-
-  .reward-bar-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .reward-emoji { font-size: 24px; }
-
-  .reward-info { flex: 1; }
-
-  .reward-name {
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 2px;
-  }
-
-  .reward-progress-text {
-    font-size: 12px;
-    font-style: italic;
-  }
-
-  .reward-track {
-    height: 4px;
-    background: #1a1624;
-    border-radius: 99px;
-    overflow: hidden;
-    margin-top: 8px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .reward-track-fill {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.8s cubic-bezier(.4,0,.2,1);
-  }
-
-  /* ── TABS ── */
-  .tabs {
-    display: flex;
-    gap: 0;
-    margin: 0 20px 20px;
-    background: var(--stone);
-    border: 1px solid #2a2540;
-    border-radius: 12px;
-    padding: 4px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    border-radius: 9px;
-    padding: 10px 8px;
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    color: var(--text-dim);
-    transition: all 0.2s;
-  }
-
-  .tab-btn.active {
-    background: linear-gradient(135deg, #1e1a2e, #13111f);
-    color: var(--gold-light);
-    box-shadow: 0 0 12px rgba(201,168,76,0.1);
-  }
-
-  /* ── EARN TAB ── */
-  .tasks-grid {
+  .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 0 20px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    padding: 0;
+    background: var(--border);
+    border-top: 1px solid var(--border);
   }
-
-  .task-btn {
-    background: var(--stone);
-    border: 1px solid #2a2540;
-    border-radius: 14px;
-    padding: 16px 10px;
-    cursor: pointer;
-    color: var(--text-main);
-    text-align: center;
-    transition: all 0.15s;
+  .card {
+    background: var(--bg);
+    padding: 2rem;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: background 0.2s;
     position: relative;
     overflow: hidden;
   }
-
-  .task-btn::after {
+  .card::after {
     content: '';
     position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 0%, rgba(201,168,76,0.08), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.2s;
+    bottom: 0; left: 0;
+    height: 2px;
+    width: 0;
+    background: var(--gold);
+    transition: width 0.3s;
   }
-
-  .task-btn:hover::after, .task-btn:active::after { opacity: 1; }
-  .task-btn:active { transform: scale(0.96); }
-  .task-btn:hover { border-color: var(--gold-dim); }
-
-  .task-icon { font-size: 28px; margin-bottom: 6px; }
-
-  .task-name {
-    font-size: 11px;
-    font-family: 'Cinzel', serif;
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-    line-height: 1.3;
-  }
-
-  .task-pts {
-    font-family: 'Cinzel', serif;
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--forest);
-    text-shadow: 0 0 12px rgba(76,175,125,0.3);
-  }
-
-  .custom-panel {
-    margin: 0 20px;
-    background: var(--stone);
-    border: 1px solid #2a2540;
-    border-radius: 14px;
-    padding: 16px;
-  }
-
-  .custom-panel-title {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: var(--gold-dim);
+  .card:hover { background: var(--surface); }
+  .card:hover::after { width: 100%; }
+  .card-tier {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
     text-transform: uppercase;
-    margin-bottom: 12px;
+    color: var(--gold-dim);
   }
-
-  .custom-input {
-    width: 100%;
-    background: #13111f;
-    border: 1px solid #2a2540;
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: var(--text-main);
-    font-family: 'Crimson Pro', serif;
-    font-size: 16px;
-    outline: none;
-    margin-bottom: 10px;
-    transition: border-color 0.2s;
+  .tier-1 .card-tier { color: var(--gold); }
+  .tier-2 .card-tier { color: #7a9e7a; }
+  .tier-3 .card-tier { color: #7a7a9e; }
+  .card-icon { font-size: 2rem; line-height: 1; }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
   }
-
-  .custom-input:focus { border-color: var(--gold-dim); }
-  .custom-input::placeholder { color: var(--text-dim); }
-
-  .pts-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+  .card-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.6;
   }
-
-  .pts-chip {
-    background: #13111f;
-    border: 1px solid #2a2540;
-    border-radius: 8px;
-    padding: 7px 12px;
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-dim);
-    cursor: pointer;
-    transition: all 0.15s;
+  .card-arrow {
+    margin-top: auto;
+    font-size: 0.7rem;
+    color: var(--gold-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
   }
-
-  .pts-chip.selected {
-    background: #1e1a2e;
-    border-color: var(--gold-dim);
-    color: var(--gold-light);
-  }
-
-  .log-btn {
-    margin-left: auto;
-    background: linear-gradient(135deg, #2a4a1e, #1a3010);
-    border: 1px solid #4caf7d44;
-    border-radius: 8px;
-    padding: 8px 18px;
-    font-family: 'Cinzel', serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--forest);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .log-btn:hover { box-shadow: 0 0 12px rgba(76,175,125,0.2); }
-  .log-btn:active { transform: scale(0.97); }
-
-  /* ── REDEEM TAB ── */
-  .redeem-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 0 20px;
-  }
-
-  .redeem-card {
-    background: var(--stone);
-    border: 1px solid #2a2540;
-    border-radius: 14px;
-    padding: 18px 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: all 0.3s;
-  }
-
-  .redeem-card.can-redeem {
-    border-color: var(--gold-dim);
-    box-shadow: 0 0 20px rgba(201,168,76,0.08);
-  }
-
-  .redeem-card-emoji { font-size: 36px; }
-
-  .redeem-card-info { flex: 1; }
-
-  .redeem-card-name {
-    font-family: 'Cinzel', serif;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 3px;
-  }
-
-  .redeem-card-cost {
-    font-size: 13px;
-    font-style: italic;
-  }
-
-  .redeem-action-btn {
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .redeem-action-btn.active {
-    background: linear-gradient(135deg, #2a2010, #1a1608);
-    border: 1px solid var(--gold-dim);
-    color: var(--gold-light);
-  }
-
-  .redeem-action-btn.active:hover { box-shadow: 0 0 16px rgba(201,168,76,0.2); }
-
-  .redeem-action-btn.inactive {
-    background: #13111f;
-    border: 1px solid #2a2540;
-    color: var(--text-dim);
-    cursor: not-allowed;
-  }
-
-  .past-rewards {
-    margin-top: 24px;
-    padding: 0 20px;
-  }
-
-  .past-reward-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #1e1a2e;
-    font-size: 13px;
-    font-style: italic;
-    color: var(--text-dim);
-  }
-
-  /* ── HISTORY TAB ── */
-  .history-list {
-    padding: 0 20px;
-  }
-
-  .history-empty {
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
     text-align: center;
-    color: var(--text-dim);
-    padding: 48px 20px;
-    font-style: italic;
-    font-size: 16px;
-  }
-
-  .history-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #1a1624;
-  }
-
-  .history-label {
-    font-size: 15px;
-    color: var(--text-main);
-    margin-bottom: 2px;
-  }
-
-  .history-time {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-style: italic;
-  }
-
-  .history-pts {
-    font-family: 'Cinzel', serif;
-    font-size: 18px;
-    font-weight: 900;
-  }
-
-  /* ── CONFETTI ── */
-  .confetti-piece {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-    z-index: 999;
-    pointer-events: none;
-    animation: confettiFall 2s ease-in forwards;
-  }
-
-  @keyframes confettiFall {
-    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-  }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: #1e1a2e;
-    border: 1px solid var(--gold-dim);
-    border-radius: 30px;
-    padding: 10px 24px;
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    color: var(--gold-light);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(201,168,76,0.15);
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 100;
-    white-space: nowrap;
-  }
-
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
   }
 </style>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="INK OS">
+  <script>
+  (function(){
+    var c=document.createElement('canvas');
+    c.width=c.height=512;
+    var ctx=c.getContext('2d');
+    if(!ctx)return;
+    
+// Background
+ctx.fillStyle='#0a0a0a';
+ctx.fillRect(0,0,512,512);
+// Gold outer ring
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=18;
+ctx.beginPath();
+ctx.arc(256,256,220,0,Math.PI*2);
+ctx.stroke();
+// Inner ring
+ctx.strokeStyle='#7a6038';
+ctx.lineWidth=4;
+ctx.beginPath();
+ctx.arc(256,256,200,0,Math.PI*2);
+ctx.stroke();
+// INK text
+ctx.fillStyle='#e0e0e0';
+ctx.font='bold 110px serif';
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+ctx.fillText('INK',256,210);
+// OS text
+ctx.fillStyle='#b8965a';
+ctx.font='bold 80px serif';
+ctx.fillText('OS',256,320);
+// Ink drop at bottom
+ctx.fillStyle='#b8965a';
+ctx.beginPath();
+ctx.arc(256,420,18,0,Math.PI*2);
+ctx.fill();
+ctx.beginPath();
+ctx.moveTo(238,420);
+ctx.lineTo(256,390);
+ctx.lineTo(274,420);
+ctx.fill();
+
+    var link=document.createElement('link');
+    link.rel='apple-touch-icon';
+    link.href=c.toDataURL('image/png');
+    document.head.appendChild(link);
+  })();
+  </script>
 </head>
 <body>
+<header>
+  <div class="logo">INK OS</div>
+  <div class="tagline">Tattoo Artist Operations Suite &mdash; 8 Tools</div>
+</header>
 
-<div id="app">
-  <div class="header">
-    <div class="header-ornament">✦ &nbsp; Adventurer's Record &nbsp; ✦</div>
-    <h1>Quest Log</h1>
-    <div class="header-sub">Ed's Daily Reckoning</div>
-  </div>
-  <div class="divider"><div class="divider-gem"></div></div>
-
-  <!-- Score -->
-  <div class="score-crystal" id="scoreCrystal">
-    <div class="score-label">Total Experience</div>
-    <div class="score-value" id="scoreValue">0</div>
-    <div class="score-pts">Points</div>
-    <div id="nextRewardHint" class="next-reward-hint"></div>
-  </div>
-
-  <!-- Rewards progress -->
-  <div class="section-title">⚔ Reward Thresholds</div>
-  <div class="rewards-grid" id="rewardsGrid"></div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="setTab('earn')">Earn</button>
-    <button class="tab-btn" onclick="setTab('redeem')">Redeem</button>
-    <button class="tab-btn" onclick="setTab('log')">Scroll</button>
-  </div>
-
-  <div id="tab-earn">
-    <div class="tasks-grid" id="tasksGrid"></div>
-    <div class="custom-panel">
-      <div class="custom-panel-title">⚗ Custom Quest</div>
-      <input class="custom-input" id="customTask" placeholder="Name your deed..." maxlength="60" />
-      <div class="pts-row">
-        <div id="ptsChips"></div>
-        <button class="log-btn" onclick="logCustom()">Claim</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="tab-redeem" style="display:none">
-    <div class="redeem-list" id="redeemList"></div>
-    <div class="past-rewards" id="pastRewards"></div>
-  </div>
-
-  <div id="tab-log" style="display:none">
-    <div class="history-list" id="historyList"></div>
-  </div>
+<div class="grid">
+  <a href="01-client-crm.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">👤</span>
+    <span class="card-title">Client CRM</span>
+    <span class="card-desc">Client records, skin type, allergies, deposit status, session history, healed photo archive.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="02-appointment-scheduler.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">📅</span>
+    <span class="card-title">Appointment Scheduler</span>
+    <span class="card-desc">Weekly calendar, session booking, deposit tracking, no-show flags, daily revenue estimate.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="03-consent-form.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">✍️</span>
+    <span class="card-title">Consent Form Manager</span>
+    <span class="card-desc">Digital consent with medical history, signature canvas, timestamped PDF output, stored records.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="04-pricing-calculator.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">💰</span>
+    <span class="card-title">Pricing Calculator</span>
+    <span class="card-desc">Hourly/flat toggle, complexity multiplier, size category, deposit auto-calc, copyable quote.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="05-flash-library.html" class="card tier-2">
+    <span class="card-tier">Tier 2 — High Value</span>
+    <span class="card-icon">🎨</span>
+    <span class="card-title">Flash Library</span>
+    <span class="card-desc">Tagged image vault, style/placement filters, availability status, shareable flash page export.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="06-supply-inventory.html" class="card tier-2">
+    <span class="card-tier">Tier 2 — High Value</span>
+    <span class="card-icon">📦</span>
+    <span class="card-title">Supply Inventory</span>
+    <span class="card-desc">Ink, needles, consumables tracking. Reorder threshold alerts. One-click shopping list export.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="07-aftercare-generator.html" class="card tier-2">
+    <span class="card-tier">Tier 2 — High Value</span>
+    <span class="card-icon">🩹</span>
+    <span class="card-title">Aftercare Generator</span>
+    <span class="card-desc">Client-specific day-by-day aftercare sheet based on placement, wrap type, and skin sensitivity.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="08-financial-tracker.html" class="card tier-3">
+    <span class="card-tier">Tier 3 — Operational</span>
+    <span class="card-icon">📊</span>
+    <span class="card-title">Financial Tracker</span>
+    <span class="card-desc">Income/expense log, weekly & monthly dashboard, quarterly tax estimate, CSV export.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<script>
-const REWARDS = [
-  { threshold: 20, label: "One Free Hour", emoji: "⏳", color: "#4caf7d" },
-  { threshold: 50, label: "Three Free Hours", emoji: "🕯️", color: "#4a9eff" },
-  { threshold: 100, label: "Free Day or Purchase Item", emoji: "👑", color: "#c9a84c" },
-];
-
-const TASKS = [
-  { label: "Hygiene", pts: 7, icon: "🧼" },
-  { label: "Chore", pts: 5, icon: "🧹" },
-  { label: "Tidy Up", pts: 10, icon: "🏠" },
-  { label: "Errand", pts: 10, icon: "🚗" },
-  { label: "Call/Email", pts: 10, icon: "📜" },
-  { label: "Complex Task", pts: 15, icon: "⚙️" },
-  { label: "Medical", pts: 20, icon: "🩺" },
-  { label: "Extraordinary", pts: 20, icon: "⭐" },
-];
-
-const PT_CHIPS = [5, 7, 10, 15, 20];
-const KEY = "questlog_v1";
-
-let state = { points: 0, history: [], redeemed: [] };
-let customPts = 10;
-let flashTimer = null;
-let toastTimer = null;
-let currentTab = 'earn';
-
-function load() {
-  try {
-    const d = localStorage.getItem(KEY);
-    if (d) state = { ...state, ...JSON.parse(d) };
-  } catch(_) {}
-  render();
-}
-
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(_) {}
-}
-
-function addPoints(label, pts) {
-  const prev = state.points;
-  state.points += pts;
-  state.history.unshift({ label, pts, time: new Date().toLocaleString(), id: Date.now() });
-  if (state.history.length > 100) state.history.pop();
-  save();
-
-  // Check unlock
-  const unlocked = REWARDS.filter(r => prev < r.threshold && state.points >= r.threshold);
-  if (unlocked.length) { triggerConfetti(); showToast(`✦ ${unlocked[0].label} Unlocked! ✦`); }
-
-  showFlash(`+${pts}`);
-  render();
-}
-
-function redeem(reward) {
-  if (state.points < reward.threshold) return;
-  state.points -= reward.threshold;
-  state.history.unshift({ label: `🎁 Redeemed: ${reward.label}`, pts: -reward.threshold, time: new Date().toLocaleString(), id: Date.now() });
-  state.redeemed.unshift({ ...reward, time: new Date().toLocaleString() });
-  if (state.redeemed.length > 20) state.redeemed.pop();
-  save();
-  showToast(`Reward claimed: ${reward.label}`);
-  render();
-}
-
-function logCustom() {
-  const task = document.getElementById('customTask').value.trim();
-  if (!task) { showToast('Name your deed first'); return; }
-  addPoints(task, customPts);
-  document.getElementById('customTask').value = '';
-}
-
-function setTab(tab) {
-  currentTab = tab;
-  ['earn','redeem','log'].forEach(t => {
-    document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
-    document.querySelectorAll('.tab-btn')[['earn','redeem','log'].indexOf(t)].classList.toggle('active', t === tab);
-  });
-}
-
-function showFlash(txt) {
-  const el = document.getElementById('flashEl');
-  if (el) el.remove();
-  if (flashTimer) clearTimeout(flashTimer);
-  const f = document.createElement('div');
-  f.id = 'flashEl';
-  f.className = 'flash-popup';
-  f.textContent = txt;
-  document.getElementById('scoreCrystal').appendChild(f);
-  flashTimer = setTimeout(() => f.remove(), 1000);
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function triggerConfetti() {
-  const colors = ['#c9a84c','#4caf7d','#4a9eff','#e05555','#9b5cf6'];
-  for (let i = 0; i < 20; i++) {
-    const p = document.createElement('div');
-    p.className = 'confetti-piece';
-    p.style.cssText = `left:${Math.random()*100}%;top:10%;background:${colors[i%5]};animation-delay:${Math.random()*0.5}s;animation-duration:${1.5+Math.random()}s`;
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 2500);
-  }
-}
-
-function render() {
-  // Score
-  document.getElementById('scoreValue').textContent = state.points;
-
-  // Next reward hint
-  const hint = document.getElementById('nextRewardHint');
-  const next = REWARDS.find(r => state.points < r.threshold);
-  if (next) hint.textContent = `${next.threshold - state.points} pts to unlock ${next.emoji} ${next.label}`;
-  else hint.innerHTML = `<span class="all-unlocked">✦ All rewards unlocked — go claim them ✦</span>`;
-
-  // Rewards grid
-  const rg = document.getElementById('rewardsGrid');
-  rg.innerHTML = '';
-  REWARDS.forEach(r => {
-    const pct = Math.min((state.points / r.threshold) * 100, 100);
-    const done = state.points >= r.threshold;
-    rg.innerHTML += `
-      <div class="reward-bar ${done ? 'unlocked' : ''}">
-        <div class="reward-bar-fill" style="background:${r.color};width:${pct}%"></div>
-        <div class="reward-bar-content">
-          <div class="reward-emoji">${r.emoji}</div>
-          <div class="reward-info">
-            <div class="reward-name" style="color:${done ? r.color : 'var(--text-main)'}">${r.label}</div>
-            <div class="reward-progress-text" style="color:${done ? r.color : 'var(--text-dim)'}">
-              ${done ? '✦ Unlocked' : `${state.points} / ${r.threshold} pts`}
-            </div>
-          </div>
-        </div>
-        <div class="reward-track">
-          <div class="reward-track-fill" style="width:${pct}%;background:${r.color}"></div>
-        </div>
-      </div>`;
-  });
-
-  // Tasks grid
-  const tg = document.getElementById('tasksGrid');
-  tg.innerHTML = TASKS.map(t => `
-    <button class="task-btn" onclick="addPoints('${t.label}', ${t.pts})">
-      <div class="task-icon">${t.icon}</div>
-      <div class="task-name">${t.label}</div>
-      <div class="task-pts">+${t.pts}</div>
-    </button>`).join('');
-
-  // Pts chips
-  const pc = document.getElementById('ptsChips');
-  pc.style.display = 'flex';
-  pc.style.gap = '6px';
-  pc.innerHTML = PT_CHIPS.map(v => `
-    <button class="pts-chip ${v === customPts ? 'selected' : ''}" onclick="selectPts(${v})">${v}</button>`).join('');
-
-  // Redeem list
-  const rl = document.getElementById('redeemList');
-  rl.innerHTML = REWARDS.map(r => {
-    const can = state.points >= r.threshold;
-    return `
-      <div class="redeem-card ${can ? 'can-redeem' : ''}">
-        <div class="redeem-card-emoji">${r.emoji}</div>
-        <div class="redeem-card-info">
-          <div class="redeem-card-name" style="color:${can ? r.color : 'var(--text-dim)'}">${r.label}</div>
-          <div class="redeem-card-cost" style="color:${can ? r.color+'aa' : 'var(--text-dim)'}">
-            ${can ? `${r.threshold} pts — ready to claim` : `Need ${r.threshold - state.points} more pts`}
-          </div>
-        </div>
-        <button class="redeem-action-btn ${can ? 'active' : 'inactive'}" onclick="${can ? `redeem(REWARDS[${REWARDS.indexOf(r)}])` : ''}">
-          ${can ? 'Claim' : 'Locked'}
-        </button>
-      </div>`;
-  }).join('');
-
-  // Past rewards
-  const pr = document.getElementById('pastRewards');
-  if (state.redeemed.length) {
-    pr.innerHTML = `<div class="section-title" style="padding:0;margin-bottom:10px">⚗ Chronicle of Claims</div>` +
-      state.redeemed.map(r => `<div class="past-reward-item"><span>${r.emoji} ${r.label}</span><span>${r.time}</span></div>`).join('');
-  } else { pr.innerHTML = ''; }
-
-  // History
-  const hl = document.getElementById('historyList');
-  if (!state.history.length) {
-    hl.innerHTML = `<div class="history-empty">Your deeds are yet unwritten...</div>`;
-  } else {
-    hl.innerHTML = state.history.map(h => `
-      <div class="history-item">
-        <div>
-          <div class="history-label">${h.label}</div>
-          <div class="history-time">${h.time}</div>
-        </div>
-        <div class="history-pts" style="color:${h.pts < 0 ? 'var(--health)' : 'var(--forest)'}">
-          ${h.pts > 0 ? '+' : ''}${h.pts}
-        </div>
-      </div>`).join('');
-  }
-}
-
-function selectPts(v) {
-  customPts = v;
-  document.querySelectorAll('.pts-chip').forEach(c => {
-    c.classList.toggle('selected', parseInt(c.textContent) === v);
-  });
-}
-
-document.getElementById('customTask').addEventListener('keydown', e => {
-  if (e.key === 'Enter') logCustom();
-});
-
-load();
-</script>
+<footer>INK OS &mdash; All data stored locally in your browser &mdash; No cloud, no subscriptions</footer>
 </body>
 </html>

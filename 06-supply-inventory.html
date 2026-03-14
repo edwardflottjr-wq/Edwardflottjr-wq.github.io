@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INK OS — Supply Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--surface:#141414;--card:#1a1a1a;--border:#2a2a2a;--gold:#b8965a;--gold-dim:#7a6038;--red:#c0392b;--green:#27ae60;--yellow:#e67e22;--text:#e0e0e0;--muted:#666;--font-d:'Cinzel',serif;--font-b:'IBM Plex Mono',monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;}
+  nav{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface);}
+  nav a{color:var(--gold-dim);text-decoration:none;font-size:0.7rem;letter-spacing:0.2em;}
+  nav a:hover{color:var(--gold);}
+  .page-title{font-family:var(--font-d);font-size:1.2rem;letter-spacing:0.15em;margin:0 auto;}
+  .toolbar{display:flex;align-items:center;gap:0.75rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .btn{background:var(--gold);color:#000;border:none;font-family:var(--font-b);font-size:0.7rem;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;padding:0.55rem 0.9rem;cursor:pointer;border-radius:2px;transition:background 0.2s;}
+  .btn:hover{background:#d4a96a;}
+  .btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);}
+  .btn-outline:hover{background:var(--gold-dim);color:#000;}
+  .btn-sm{padding:0.3rem 0.6rem;font-size:0.65rem;}
+  .btn-red{background:var(--red);color:#fff;border:none;}
+  .btn-red:hover{background:#e74c3c;}
+  select,input{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font-b);font-size:0.75rem;padding:0.5rem 0.65rem;border-radius:2px;}
+  select:focus,input:focus{outline:none;border-color:var(--gold-dim);}
+  select option{background:var(--card);}
+  .alert-badge{background:rgba(192,57,43,0.15);color:var(--red);padding:0.25rem 0.6rem;border-radius:2px;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;}
+  .content{padding:1.5rem;}
+  .category-section{margin-bottom:2.5rem;}
+  .cat-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border);}
+  .cat-title{font-family:var(--font-d);font-size:0.85rem;letter-spacing:0.2em;text-transform:uppercase;}
+  .cat-icon{font-size:1rem;}
+  .cat-count{font-size:0.65rem;color:var(--muted);}
+  .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;background:var(--border);}
+  .item-card{background:var(--bg);padding:1rem;display:flex;flex-direction:column;gap:0.5rem;transition:background 0.15s;}
+  .item-card:hover{background:var(--surface);}
+  .item-card.low{border-left:3px solid var(--red);}
+  .item-card.ok{border-left:3px solid var(--green);}
+  .item-name{font-size:0.8rem;font-weight:500;}
+  .item-qty-row{display:flex;align-items:center;gap:0.5rem;}
+  .qty-controls{display:flex;align-items:center;gap:0.25rem;}
+  .qty-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:24px;height:24px;cursor:pointer;border-radius:2px;font-size:0.8rem;display:flex;align-items:center;justify-content:center;transition:border-color 0.15s;}
+  .qty-btn:hover{border-color:var(--gold);}
+  .qty-val{font-family:var(--font-d);font-size:1.1rem;min-width:36px;text-align:center;}
+  .qty-unit{font-size:0.65rem;color:var(--muted);}
+  .threshold-row{display:flex;align-items:center;gap:0.5rem;font-size:0.68rem;color:var(--muted);}
+  .status-indicator{font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;}
+  .status-low{color:var(--red);}
+  .status-ok{color:var(--green);}
+  .item-meta{font-size:0.65rem;color:var(--muted);}
+  .item-actions{display:flex;gap:0.4rem;margin-top:0.25rem;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--gold);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;border-radius:2px;}
+  .modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .modal-title{font-family:var(--font-d);font-size:1rem;letter-spacing:0.1em;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;}
+  .modal-body{padding:1.5rem;display:flex;flex-direction:column;gap:1rem;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-group{display:flex;flex-direction:column;gap:0.4rem;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:0.63rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+  .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:0.75rem;}
+  .reorder-modal .reorder-list{font-size:0.8rem;line-height:2;white-space:pre-wrap;background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:2px;}
+</style>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Inventory">
+  <script>
+  (function(){
+    var c=document.createElement('canvas');
+    c.width=c.height=512;
+    var ctx=c.getContext('2d');
+    if(!ctx)return;
+    
+ctx.fillStyle='#0a0a0a';
+ctx.fillRect(0,0,512,512);
+// Box bottom face
+ctx.fillStyle='#1a1a1a';
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=10;
+ctx.beginPath();
+ctx.moveTo(100,280);ctx.lineTo(256,380);ctx.lineTo(412,280);ctx.lineTo(412,420);ctx.lineTo(256,520);ctx.lineTo(100,420);ctx.closePath();
+ctx.fill();ctx.stroke();
+// Box top face
+ctx.fillStyle='#252525';
+ctx.beginPath();
+ctx.moveTo(100,280);ctx.lineTo(256,180);ctx.lineTo(412,280);ctx.lineTo(256,380);ctx.closePath();
+ctx.fill();ctx.stroke();
+// Box left face
+ctx.fillStyle='#1e1e1e';
+ctx.beginPath();
+ctx.moveTo(100,280);ctx.lineTo(100,420);ctx.lineTo(256,520);ctx.lineTo(256,380);ctx.closePath();
+ctx.fill();ctx.stroke();
+// Gold stripe on top
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=6;
+ctx.beginPath();ctx.moveTo(178,230);ctx.lineTo(256,280);ctx.lineTo(334,230);ctx.stroke();
+// Needle icon
+ctx.strokeStyle='#e0e0e0';
+ctx.lineWidth=8;
+ctx.beginPath();ctx.moveTo(256,90);ctx.lineTo(256,170);ctx.stroke();
+ctx.fillStyle='#b8965a';
+ctx.beginPath();ctx.arc(256,86,16,0,Math.PI*2);ctx.fill();
+
+    var link=document.createElement('link');
+    link.rel='apple-touch-icon';
+    link.href=c.toDataURL('image/png');
+    document.head.appendChild(link);
+  })();
+  </script>
+</head>
+<body>
+<nav>
+  <a href="index.html">← INK OS</a>
+  <span class="page-title">Supply Inventory</span>
+</nav>
+<div class="toolbar">
+  <button class="btn" onclick="openModal()">+ Add Item</button>
+  <button class="btn btn-outline" onclick="showReorder()">📋 Reorder List</button>
+  <span id="alertBadge" style="display:none"></span>
+  <select id="filterCat" onchange="render()" style="margin-left:auto">
+    <option value="">All Categories</option>
+    <option>Needles</option><option>Ink</option><option>Consumables</option><option>Equipment</option><option>Other</option>
+  </select>
+</div>
+<div class="content" id="content"></div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="itemModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add Item</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Item Name *</label><input id="i-name" type="text"></div>
+        <div class="form-group"><label>Category</label>
+          <select id="i-cat">
+            <option>Needles</option><option>Ink</option><option>Consumables</option><option>Equipment</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Current Quantity</label><input id="i-qty" type="number" min="0" value="0"></div>
+        <div class="form-group"><label>Unit (box, bottle, pair...)</label><input id="i-unit" type="text" placeholder="box"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Reorder Threshold</label><input id="i-thresh" type="number" min="0" value="5"></div>
+        <div class="form-group"><label>Brand / Supplier</label><input id="i-supplier" type="text" placeholder="Intenze, Amazon..."></div>
+      </div>
+      <div class="form-group full"><label>Notes (SKU, link, color name...)</label><input id="i-notes" type="text"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" id="deleteItemBtn" style="display:none" onclick="deleteItem()">Delete</button>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-sm" onclick="saveItem()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reorder Modal -->
+<div class="modal-overlay reorder-modal" id="reorderModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Reorder List</span>
+      <button class="modal-close" onclick="document.getElementById('reorderModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="reorder-list" id="reorderList"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end">
+      <button class="btn btn-sm" onclick="copyReorder()">Copy List</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_ITEMS = [
+  {id:'d1',name:'Round Liner #9',cat:'Needles',qty:12,unit:'box',thresh:5,supplier:'',notes:''},
+  {id:'d2',name:'Round Shader #14',cat:'Needles',qty:8,unit:'box',thresh:5,supplier:'',notes:''},
+  {id:'d3',name:'Magnum #15',cat:'Needles',qty:3,unit:'box',thresh:5,supplier:'',notes:'⚠ Low'},
+  {id:'d4',name:'Black (Intenze)',cat:'Ink',qty:4,unit:'bottle',thresh:3,supplier:'Intenze',notes:''},
+  {id:'d5',name:'Grey Wash Set',cat:'Ink',qty:2,unit:'set',thresh:2,supplier:'',notes:'⚠ Low'},
+  {id:'d6',name:'Nitrile Gloves S',cat:'Consumables',qty:1,unit:'box',thresh:2,supplier:'',notes:'⚠ Low'},
+  {id:'d7',name:'Stencil Paper',cat:'Consumables',qty:50,unit:'sheet',thresh:20,supplier:'',notes:''},
+  {id:'d8',name:'Green Soap',cat:'Consumables',qty:3,unit:'bottle',thresh:2,supplier:'',notes:''},
+  {id:'d9',name:'Plastic Wrap',cat:'Consumables',qty:2,unit:'roll',thresh:2,supplier:'',notes:'⚠ Low'},
+  {id:'d10',name:'Saniderm 4"',cat:'Consumables',qty:1,unit:'roll',thresh:2,supplier:'',notes:'⚠ Low'},
+  {id:'d11',name:'Paper Towels',cat:'Consumables',qty:4,unit:'roll',thresh:3,supplier:'',notes:''},
+  {id:'d12',name:'Disposable Ink Caps',cat:'Consumables',qty:80,unit:'cap',thresh:30,supplier:'',notes:''},
+];
+let items = JSON.parse(localStorage.getItem('ink_inventory')||'null') || DEFAULT_ITEMS.map(i=>({...i}));
+let editId = null;
+
+function saveI() { localStorage.setItem('ink_inventory',JSON.stringify(items)); }
+
+function render() {
+  const catFilter = document.getElementById('filterCat').value;
+  const cats = ['Needles','Ink','Consumables','Equipment','Other'];
+  const catIcons = {Needles:'🪡',Ink:'🖤',Consumables:'📦',Equipment:'⚙️',Other:'📎'};
+  const lowItems = items.filter(i=>i.qty<=i.thresh);
+  const alertBadge = document.getElementById('alertBadge');
+  if (lowItems.length) {
+    alertBadge.style.display='inline';
+    alertBadge.className='alert-badge';
+    alertBadge.textContent=lowItems.length+' item'+(lowItems.length!==1?'s':'')+' low';
+  } else { alertBadge.style.display='none'; }
+
+  const filtered = catFilter ? cats.filter(c=>c===catFilter) : cats;
+  document.getElementById('content').innerHTML = filtered.map(cat => {
+    const catItems = items.filter(i=>i.cat===cat);
+    if (!catItems.length) return '';
+    return `<div class="category-section">
+      <div class="cat-header">
+        <span class="cat-icon">${catIcons[cat]||'📎'}</span>
+        <span class="cat-title">${cat}</span>
+        <span class="cat-count">${catItems.length} item${catItems.length!==1?'s':''}</span>
+        ${catItems.filter(i=>i.qty<=i.thresh).length?`<span class="alert-badge">${catItems.filter(i=>i.qty<=i.thresh).length} low</span>`:''}
+      </div>
+      <div class="items-grid">
+        ${catItems.map(item => {
+          const low = item.qty <= item.thresh;
+          return `<div class="item-card ${low?'low':'ok'}">
+            <div class="item-name">${item.name}</div>
+            <div class="item-qty-row">
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="adjustQty('${item.id}',-1)">−</button>
+                <span class="qty-val">${item.qty}</span>
+                <button class="qty-btn" onclick="adjustQty('${item.id}',1)">+</button>
+              </div>
+              <span class="qty-unit">${item.unit||''}</span>
+              <span class="status-indicator ${low?'status-low':'status-ok'}">${low?'⚠ LOW':'✓ OK'}</span>
+            </div>
+            <div class="threshold-row">Reorder at: ${item.thresh} ${item.unit||''}</div>
+            ${item.supplier?`<div class="item-meta">Supplier: ${item.supplier}</div>`:''}
+            ${item.notes?`<div class="item-meta">${item.notes}</div>`:''}
+            <div class="item-actions">
+              <button class="btn btn-sm btn-outline" onclick="openModal('${item.id}')">Edit</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adjustQty(id, delta) {
+  const item = items.find(x=>x.id===id);
+  if (!item) return;
+  item.qty = Math.max(0, item.qty + delta);
+  saveI(); render();
+}
+
+function openModal(id) {
+  editId = id||null;
+  const item = id ? items.find(x=>x.id===id) : null;
+  document.getElementById('modalTitle').textContent = item ? 'Edit Item' : 'Add Item';
+  document.getElementById('i-name').value = item?.name||'';
+  document.getElementById('i-cat').value = item?.cat||'Consumables';
+  document.getElementById('i-qty').value = item?.qty||0;
+  document.getElementById('i-unit').value = item?.unit||'';
+  document.getElementById('i-thresh').value = item?.thresh||5;
+  document.getElementById('i-supplier').value = item?.supplier||'';
+  document.getElementById('i-notes').value = item?.notes||'';
+  document.getElementById('deleteItemBtn').style.display = item?'inline-flex':'none';
+  document.getElementById('itemModal').style.display='flex';
+}
+
+function closeModal() { document.getElementById('itemModal').style.display='none'; }
+
+function saveItem() {
+  const name = document.getElementById('i-name').value.trim();
+  if (!name) { alert('Item name required.'); return; }
+  const data = {
+    name, cat: document.getElementById('i-cat').value,
+    qty: parseInt(document.getElementById('i-qty').value)||0,
+    unit: document.getElementById('i-unit').value.trim(),
+    thresh: parseInt(document.getElementById('i-thresh').value)||5,
+    supplier: document.getElementById('i-supplier').value.trim(),
+    notes: document.getElementById('i-notes').value.trim()
+  };
+  if (editId) {
+    const i = items.findIndex(x=>x.id===editId);
+    items[i] = { ...items[i], ...data };
+  } else {
+    data.id = Date.now().toString();
+    items.push(data);
+  }
+  saveI(); closeModal(); render();
+}
+
+function deleteItem() {
+  if (!editId || !confirm('Delete this item?')) return;
+  items = items.filter(x=>x.id!==editId);
+  saveI(); closeModal(); render();
+}
+
+function showReorder() {
+  const low = items.filter(i=>i.qty<=i.thresh);
+  if (!low.length) { alert('All items are above reorder threshold. 👍'); return; }
+  const text = '🛒 REORDER LIST — '+new Date().toLocaleDateString()+'\n'+
+    '═══════════════════════════════\n\n' +
+    low.map(i=>`□ ${i.name}\n  Category: ${i.cat}\n  Current: ${i.qty} ${i.unit}  /  Threshold: ${i.thresh} ${i.unit}${i.supplier?'\n  Supplier: '+i.supplier:''}${i.notes?'\n  Note: '+i.notes:''}`).join('\n\n');
+  document.getElementById('reorderList').textContent = text;
+  document.getElementById('reorderModal').style.display='flex';
+}
+
+function copyReorder() {
+  const text = document.getElementById('reorderList').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = event.target;
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy List',1500);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
