@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INK OS — Tattoo Artist Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --border: #2a2a2a;
+    --gold: #b8965a;
+    --gold-dim: #7a6038;
+    --red: #c0392b;
+    --text: #e0e0e0;
+    --muted: #666;
+    --font-display: 'Cinzel', serif;
+    --font-body: 'IBM Plex Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(184,150,90,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(192,57,43,0.03) 0%, transparent 50%);
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    background: linear-gradient(135deg, var(--gold), #fff, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .tagline {
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    padding: 0;
+    background: var(--border);
+    border-top: 1px solid var(--border);
+  }
+  .card {
+    background: var(--bg);
+    padding: 2rem;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    width: 0;
+    background: var(--gold);
+    transition: width 0.3s;
+  }
+  .card:hover { background: var(--surface); }
+  .card:hover::after { width: 100%; }
+  .card-tier {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+  .tier-1 .card-tier { color: var(--gold); }
+  .tier-2 .card-tier { color: #7a9e7a; }
+  .tier-3 .card-tier { color: #7a7a9e; }
+  .card-icon { font-size: 2rem; line-height: 1; }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+  }
+  .card-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .card-arrow {
+    margin-top: auto;
+    font-size: 0.7rem;
+    color: var(--gold-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+</style>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="INK OS">
+  <script>
+  (function(){
+    var c=document.createElement('canvas');
+    c.width=c.height=512;
+    var ctx=c.getContext('2d');
+    if(!ctx)return;
+    
+// Background
+ctx.fillStyle='#0a0a0a';
+ctx.fillRect(0,0,512,512);
+// Gold outer ring
+ctx.strokeStyle='#b8965a';
+ctx.lineWidth=18;
+ctx.beginPath();
+ctx.arc(256,256,220,0,Math.PI*2);
+ctx.stroke();
+// Inner ring
+ctx.strokeStyle='#7a6038';
+ctx.lineWidth=4;
+ctx.beginPath();
+ctx.arc(256,256,200,0,Math.PI*2);
+ctx.stroke();
+// INK text
+ctx.fillStyle='#e0e0e0';
+ctx.font='bold 110px serif';
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+ctx.fillText('INK',256,210);
+// OS text
+ctx.fillStyle='#b8965a';
+ctx.font='bold 80px serif';
+ctx.fillText('OS',256,320);
+// Ink drop at bottom
+ctx.fillStyle='#b8965a';
+ctx.beginPath();
+ctx.arc(256,420,18,0,Math.PI*2);
+ctx.fill();
+ctx.beginPath();
+ctx.moveTo(238,420);
+ctx.lineTo(256,390);
+ctx.lineTo(274,420);
+ctx.fill();
+
+    var link=document.createElement('link');
+    link.rel='apple-touch-icon';
+    link.href=c.toDataURL('image/png');
+    document.head.appendChild(link);
+  })();
+  </script>
+</head>
+<body>
+<header>
+  <div class="logo">INK OS</div>
+  <div class="tagline">Tattoo Artist Operations Suite &mdash; 8 Tools</div>
+</header>
+
+<div class="grid">
+  <a href="01-client-crm.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">👤</span>
+    <span class="card-title">Client CRM</span>
+    <span class="card-desc">Client records, skin type, allergies, deposit status, session history, healed photo archive.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="02-appointment-scheduler.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">📅</span>
+    <span class="card-title">Appointment Scheduler</span>
+    <span class="card-desc">Weekly calendar, session booking, deposit tracking, no-show flags, daily revenue estimate.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="03-consent-form.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">✍️</span>
+    <span class="card-title">Consent Form Manager</span>
+    <span class="card-desc">Digital consent with medical history, signature canvas, timestamped PDF output, stored records.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="04-pricing-calculator.html" class="card tier-1">
+    <span class="card-tier">Tier 1 — Core</span>
+    <span class="card-icon">💰</span>
+    <span class="card-title">Pricing Calculator</span>
+    <span class="card-desc">Hourly/flat toggle, complexity multiplier, size category, deposit auto-calc, copyable quote.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="05-flash-library.html" class="card tier-2">
+    <span class="card-tier">Tier 2 — High Value</span>
+    <span class="card-icon">🎨</span>
+    <span class="card-title">Flash Library</span>
+    <span class="card-desc">Tagged image vault, style/placement filters, availability status, shareable flash page export.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="06-supply-inventory.html" class="card tier-2">
+    <span class="card-tier">Tier 2 — High Value</span>
+    <span class="card-icon">📦</span>
+    <span class="card-title">Supply Inventory</span>
+    <span class="card-desc">Ink, needles, consumables tracking. Reorder threshold alerts. One-click shopping list export.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="07-aftercare-generator.html" class="card tier-2">
+    <span class="card-tier">Tier 2 — High Value</span>
+    <span class="card-icon">🩹</span>
+    <span class="card-title">Aftercare Generator</span>
+    <span class="card-desc">Client-specific day-by-day aftercare sheet based on placement, wrap type, and skin sensitivity.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+  <a href="08-financial-tracker.html" class="card tier-3">
+    <span class="card-tier">Tier 3 — Operational</span>
+    <span class="card-icon">📊</span>
+    <span class="card-title">Financial Tracker</span>
+    <span class="card-desc">Income/expense log, weekly & monthly dashboard, quarterly tax estimate, CSV export.</span>
+    <span class="card-arrow">Open →</span>
+  </a>
+</div>
+
+<footer>INK OS &mdash; All data stored locally in your browser &mdash; No cloud, no subscriptions</footer>
+</body>
+</html>
