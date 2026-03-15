@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Symptom Log</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#060c14;--bg2:#08111e;--bg3:#0a1422;--bg4:#0e1929;
+    --border:#162030;--border2:#0d1520;
+    --text:#dde4ef;--text2:#94a3b8;--text3:#506070;--text4:#2a4060;
+    --blue:#0b3872;--blue2:#38bdf8;--blue3:#60a5fa;--blue4:#93c5fd;
+    --green:#4ade80;--yellow:#facc15;--orange:#fb923c;--red:#f87171;
+    --purple:#a78bfa;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;overscroll-behavior:none}
+  ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  /* ── Layout ── */
+  #app{max-width:480px;margin:0 auto;padding:16px 14px 100px}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+  h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#f1f5f9;letter-spacing:-0.04em;line-height:1}
+  .header-date{font-size:11px;color:var(--text4);margin-top:5px;font-style:italic}
+  .copy-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text4);padding:8px 13px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap}
+  .copy-btn.ok{background:#0a2218;border-color:#164a30;color:var(--green)}
+
+  /* ── Tabs ── */
+  .tab-bar{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:3px;display:flex;gap:3px;margin-bottom:14px}
+  .tab-btn{flex:1;background:transparent;border:none;font-family:inherit;font-size:11px;padding:9px 10px;border-radius:7px;cursor:pointer;color:var(--text4);transition:all .14s;font-weight:400}
+  .tab-btn.active{background:var(--blue);color:var(--blue4);font-weight:500}
+
+  /* ── Body view toggle ── */
+  .view-toggle{display:flex;gap:8px;margin-bottom:12px}
+  .view-btn{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text4);padding:9px;border-radius:8px;font-family:inherit;font-size:11px;cursor:pointer;transition:all .14s;text-align:center}
+  .view-btn.active{background:var(--blue);border-color:var(--blue);color:var(--blue4)}
+
+  /* ── Body map ── */
+  #body-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px;display:flex;justify-content:center}
+  #body-svg{width:160px;height:auto;display:block}
+  .region{cursor:pointer;transition:fill-opacity .12s,stroke-width .12s;fill-opacity:.35;stroke:#162c50;stroke-width:.6}
+  .region:hover,.region.hov{fill-opacity:.7;stroke:#60a5fa;stroke-width:1.6}
+  .region.lit{fill-opacity:.78;stroke-width:1.2}
+  #hover-label{text-align:center;min-height:22px;font-size:11px;color:var(--blue3);font-style:italic;margin-top:6px}
+
+  /* ── Legend ── */
+  .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:16px}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text4)}
+  .legend-dot{width:9px;height:9px;border-radius:2px;opacity:.85}
+
+  /* ── Entry cards ── */
+  .entry-card{background:var(--bg2);border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-left:3px solid;margin-bottom:8px;animation:fadein .18s ease-out}
+  .entry-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .entry-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .entry-sub{font-size:11px;color:var(--text3);margin-top:3px}
+  .entry-badge{flex-shrink:0;border-radius:6px;padding:2px 10px;font-size:13px;font-weight:500}
+  .entry-notes{font-size:11px;color:var(--text3);margin-top:8px;font-style:italic;line-height:1.5}
+  .entry-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+  .entry-time{font-size:10px;color:var(--text4)}
+  .entry-actions{display:flex;gap:6px}
+  .btn-edit{background:var(--bg4);border:1px solid var(--border);color:var(--text3);padding:4px 11px;border-radius:5px;font-size:10px;cursor:pointer;font-family:inherit}
+  .btn-del{background:#1a0e0e;border:1px solid #3a1212;color:var(--red);padding:4px 11px;border-radius:5px;font-size:10px;cursor:pointer;font-family:inherit}
+
+  /* ── History ── */
+  .hist-day{background:var(--bg2);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px}
+  .hist-head{width:100%;background:transparent;border:none;padding:13px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;color:var(--text2)}
+  .hist-label{font-size:13px}
+  .hist-count{font-size:10px;color:var(--text4);margin-left:8px}
+  .hist-peak{font-size:11px}
+  .hist-arrow{color:var(--text4);font-size:11px;margin-left:8px}
+  .hist-body{border-top:1px solid var(--border2);padding:8px 14px 12px}
+  .hist-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border2)}
+  .hist-row:last-child{border-bottom:none}
+  .hist-region{font-size:12px;color:#6a85a0}
+  .hist-type{font-size:10px;color:var(--text4);margin-top:2px}
+  .hist-sev{font-size:12px;font-weight:500}
+
+  /* ── Empty ── */
+  .empty{background:var(--bg2);border-radius:12px;border:1px dashed var(--border);padding:36px 16px;text-align:center}
+  .empty-icon{font-size:28px;opacity:.2;margin-bottom:10px}
+  .empty-msg{font-size:12px;color:var(--text4)}
+  .empty-sub{font-size:11px;color:var(--border);margin-top:5px}
+
+  /* ── Modal ── */
+  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:flex-end;justify-content:center}
+  #overlay.show{display:flex}
+  #modal{background:var(--bg3);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-width:480px;padding:24px 20px 36px;max-height:92vh;overflow-y:auto;animation:slideup .22s ease-out}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+  .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#f1f5f9}
+  .modal-region{font-size:12px;color:var(--blue2);margin-top:4px}
+  .close-btn{background:var(--bg4);border:1px solid var(--border);color:var(--text4);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;font-family:inherit;line-height:32px;text-align:center;flex-shrink:0}
+
+  /* ── Form sections ── */
+  .sec-label{font-size:10px;color:var(--text4);letter-spacing:.1em;margin-bottom:10px}
+  .sec{margin-bottom:18px}
+  .pills{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{cursor:pointer;border-radius:20px;border:1px solid var(--border);font-family:inherit;font-size:12px;padding:6px 14px;background:transparent;color:var(--text4);transition:all .12s}
+  .pill.sel-blue{border-color:var(--blue2);color:var(--blue2);background:#062a4a}
+  .pill.sel-purple{border-color:var(--purple);color:var(--purple);background:#20104a}
+
+  /* ── Severity slider ── */
+  .sev-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:10px}
+  .sev-hint{color:var(--text4)}
+  .sev-val{font-weight:500}
+  input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;outline:none;cursor:pointer;margin-bottom:4px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.6);cursor:pointer}
+  .sev-marks{display:flex;justify-content:space-between;font-size:10px;color:var(--border)}
+
+  /* ── Notes ── */
+  textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:#7a90a8;padding:11px 13px;font-size:12px;font-family:inherit;resize:vertical;outline:none;min-height:70px}
+
+  /* ── Modal actions ── */
+  .modal-actions{display:flex;gap:10px;margin-top:6px}
+  .btn-cancel{flex:1;padding:14px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:13px;cursor:pointer;font-family:inherit}
+  .btn-save{flex:2;padding:14px;border-radius:10px;border:none;background:var(--blue);color:#e2e8f0;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+
+  /* ── Animations ── */
+  @keyframes slideup{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div>
+      <h1>SYMPTOM LOG</h1>
+      <div class="header-date" id="header-date"></div>
+    </div>
+    <button class="copy-btn" id="copy-btn" onclick="copyLog()">⎘ Copy Log</button>
+  </div>
+
+  <!-- Main tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">TODAY (<span id="today-count">0</span>)</button>
+    <button class="tab-btn" id="tab-history" onclick="switchTab('history')">HISTORY</button>
+  </div>
+
+  <!-- TODAY panel -->
+  <div id="panel-today">
+    <!-- Body view toggle -->
+    <div class="view-toggle">
+      <button class="view-btn active" id="vbtn-front" onclick="setView('front')">▼ FRONT</button>
+      <button class="view-btn" id="vbtn-back" onclick="setView('back')">▲ BACK</button>
+    </div>
+
+    <!-- Body map -->
+    <div id="body-wrap">
+      <div>
+        <svg id="body-svg" viewBox="0 0 120 295" xmlns="http://www.w3.org/2000/svg">
+          <!-- Silhouette -->
+          <g fill="#19304e" stroke="none" id="silhouette">
+            <ellipse cx="60" cy="25" rx="20" ry="22"/>
+            <rect x="51" y="43" width="18" height="17" rx="3"/>
+            <rect x="30" y="52" width="60" height="114" rx="6"/>
+            <rect x="7" y="52" width="19" height="56" rx="4"/>
+            <rect x="94" y="52" width="19" height="56" rx="4"/>
+            <rect x="4" y="103" width="17" height="51" rx="4"/>
+            <rect x="99" y="103" width="17" height="51" rx="4"/>
+            <ellipse cx="12" cy="168" rx="12" ry="16"/>
+            <ellipse cx="108" cy="168" rx="12" ry="16"/>
+            <rect x="29" y="160" width="29" height="60" rx="5"/>
+            <rect x="62" y="160" width="29" height="60" rx="5"/>
+            <ellipse cx="44" cy="222" rx="16" ry="12"/>
+            <ellipse cx="76" cy="222" rx="16" ry="12"/>
+            <rect x="29" y="230" width="27" height="50" rx="5"/>
+            <rect x="64" y="230" width="27" height="50" rx="5"/>
+            <ellipse cx="42" cy="286" rx="18" ry="10"/>
+            <ellipse cx="78" cy="286" rx="18" ry="10"/>
+          </g>
+          <!-- Regions rendered by JS -->
+          <g id="regions-layer"></g>
+          <!-- Severity labels -->
+          <g id="labels-layer" style="pointer-events:none;user-select:none"></g>
+        </svg>
+        <div id="hover-label">tap a region to log</div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>1–3</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#facc15"></div>4–5</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>6–7</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>8–10</div>
+    </div>
+
+    <!-- Today entries -->
+    <div id="today-entries"></div>
+  </div>
+
+  <!-- HISTORY panel -->
+  <div id="panel-history" style="display:none">
+    <div id="history-entries"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="overlay" onclick="overlayClick(event)">
+  <div id="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-title">Log Symptom</div>
+        <div class="modal-region" id="modal-region-label"></div>
+      </div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">SYMPTOM TYPE</div>
+      <div class="pills" id="type-pills"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">SEVERITY</div>
+      <div class="sev-row">
+        <span class="sev-hint">1 = minimal · 10 = extreme</span>
+        <span class="sev-val" id="sev-display">5/10 · Moderate</span>
+      </div>
+      <input type="range" id="sev-slider" min="1" max="10" value="5" oninput="updateSev(this.value)"/>
+      <div class="sev-marks"><span>1</span><span>5</span><span>10</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">PATTERN</div>
+      <div class="pills" id="pattern-pills"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">NOTES</div>
+      <textarea id="notes-input" placeholder="Triggers, context, medications taken, time of onset..." rows="3"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="save-btn" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const SYMPTOM_TYPES = ["Pain","Aching","Burning","Stabbing","Throbbing","Numbness","Tingling","Weakness","Stiffness","Swelling","Cramping","Pressure","Fatigue","Other"];
+const PATTERNS = ["New today","Ongoing","Worsening","Improving","Intermittent"];
+
+const FRONT = [
+  {id:"head",      label:"Head",                 type:"ellipse",cx:60, cy:25,  rx:18,ry:20},
+  {id:"neck",      label:"Neck / Cervical",       type:"rect",   x:52,  y:44,  w:16, h:14},
+  {id:"l_shldr",  label:"L. Shoulder",           type:"ellipse",cx:23, cy:67,  rx:15,ry:13},
+  {id:"r_shldr",  label:"R. Shoulder",           type:"ellipse",cx:97, cy:67,  rx:15,ry:13},
+  {id:"chest",     label:"Chest",                 type:"rect",   x:33,  y:55,  w:54, h:47},
+  {id:"abdomen",   label:"Abdomen",               type:"rect",   x:33,  y:102, w:54, h:38},
+  {id:"pelvis",    label:"Pelvis / Groin",        type:"rect",   x:33,  y:140, w:54, h:22},
+  {id:"l_up_arm", label:"L. Upper Arm",          type:"rect",   x:9,   y:55,  w:17, h:50},
+  {id:"r_up_arm", label:"R. Upper Arm",          type:"rect",   x:94,  y:55,  w:17, h:50},
+  {id:"l_fore",   label:"L. Forearm",            type:"rect",   x:6,   y:106, w:15, h:46},
+  {id:"r_fore",   label:"R. Forearm",            type:"rect",   x:99,  y:106, w:15, h:46},
+  {id:"l_hand",   label:"L. Hand / Wrist",       type:"ellipse",cx:13, cy:167, rx:10,ry:14},
+  {id:"r_hand",   label:"R. Hand / Wrist",       type:"ellipse",cx:107,cy:167, rx:10,ry:14},
+  {id:"l_thigh",  label:"L. Thigh",              type:"rect",   x:33,  y:162, w:26, h:53},
+  {id:"r_thigh",  label:"R. Thigh",              type:"rect",   x:61,  y:162, w:26, h:53},
+  {id:"l_knee",   label:"L. Knee",               type:"ellipse",cx:46, cy:221, rx:13,ry:10},
+  {id:"r_knee",   label:"R. Knee",               type:"ellipse",cx:74, cy:221, rx:13,ry:10},
+  {id:"l_calf",   label:"L. Shin / Calf",        type:"rect",   x:33,  y:231, w:24, h:46},
+  {id:"r_calf",   label:"R. Shin / Calf",        type:"rect",   x:63,  y:231, w:24, h:46},
+  {id:"l_foot",   label:"L. Foot / Ankle",       type:"ellipse",cx:42, cy:285, rx:16,ry:9},
+  {id:"r_foot",   label:"R. Foot / Ankle",       type:"ellipse",cx:78, cy:285, rx:16,ry:9},
+];
+const BACK = [
+  {id:"head_b",   label:"Head (back)",            type:"ellipse",cx:60, cy:25,  rx:18,ry:20},
+  {id:"neck_b",   label:"Neck / Cervical (back)", type:"rect",   x:52,  y:44,  w:16, h:14},
+  {id:"l_shldB",  label:"L. Shoulder (back)",     type:"ellipse",cx:23, cy:67,  rx:15,ry:13},
+  {id:"r_shldB",  label:"R. Shoulder (back)",     type:"ellipse",cx:97, cy:67,  rx:15,ry:13},
+  {id:"up_back",  label:"Upper Back / Thoracic",  type:"rect",   x:33,  y:55,  w:54, h:47},
+  {id:"lo_back",  label:"Lower Back / Lumbar",    type:"rect",   x:33,  y:102, w:54, h:38},
+  {id:"l_glute",  label:"L. Glute / Hip",         type:"rect",   x:33,  y:140, w:27, h:27},
+  {id:"r_glute",  label:"R. Glute / Hip",         type:"rect",   x:60,  y:140, w:27, h:27},
+  {id:"l_up_armB",label:"L. Upper Arm (back)",    type:"rect",   x:9,   y:55,  w:17, h:50},
+  {id:"r_up_armB",label:"R. Upper Arm (back)",    type:"rect",   x:94,  y:55,  w:17, h:50},
+  {id:"l_foreB",  label:"L. Forearm (back)",      type:"rect",   x:6,   y:106, w:15, h:46},
+  {id:"r_foreB",  label:"R. Forearm (back)",      type:"rect",   x:99,  y:106, w:15, h:46},
+  {id:"l_handB",  label:"L. Hand (back)",         type:"ellipse",cx:13, cy:167, rx:10,ry:14},
+  {id:"r_handB",  label:"R. Hand (back)",         type:"ellipse",cx:107,cy:167, rx:10,ry:14},
+  {id:"l_ham",    label:"L. Hamstring",           type:"rect",   x:33,  y:167, w:26, h:48},
+  {id:"r_ham",    label:"R. Hamstring",           type:"rect",   x:61,  y:167, w:26, h:48},
+  {id:"l_kneeB",  label:"L. Knee (back)",         type:"ellipse",cx:46, cy:221, rx:13,ry:10},
+  {id:"r_kneeB",  label:"R. Knee (back)",         type:"ellipse",cx:74, cy:221, rx:13,ry:10},
+  {id:"l_calfB",  label:"L. Calf (back)",         type:"rect",   x:33,  y:231, w:24, h:46},
+  {id:"r_calfB",  label:"R. Calf (back)",         type:"rect",   x:63,  y:231, w:24, h:46},
+  {id:"l_heel",   label:"L. Heel / Foot",         type:"ellipse",cx:42, cy:285, rx:16,ry:9},
+  {id:"r_heel",   label:"R. Heel / Foot",         type:"ellipse",cx:78, cy:285, rx:16,ry:9},
+];
+const ALL_REGIONS = [...FRONT,...BACK];
+
+// ── State ──────────────────────────────────────────────────────────────────
+const TODAY = new Date().toISOString().split("T")[0];
+let log = {};
+let bodyView = "front";
+let currentTab = "today";
+let modalRegion = null;
+let editId = null;
+let formState = {symptomType:"Pain", severity:5, pattern:"New today", notes:""};
+
+try { const s = localStorage.getItem("sx_v5"); if(s) log = JSON.parse(s); } catch(e){}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function save() { try { localStorage.setItem("sx_v5", JSON.stringify(log)); } catch(e){} }
+function sevColor(s) { return s<=3?"#4ade80":s<=5?"#facc15":s<=7?"#fb923c":"#f87171"; }
+function sevLabel(s) { return s<=2?"Minimal":s<=4?"Mild":s<=6?"Moderate":s<=8?"Severe":"Extreme"; }
+function rCenter(r) { return r.type==="ellipse"?[r.cx,r.cy]:[r.x+r.w/2,r.y+r.h/2]; }
+function svgEl(tag, attrs) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+
+// ── Init date ─────────────────────────────────────────────────────────────
+document.getElementById("header-date").textContent =
+  new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+
+// ── Body map ──────────────────────────────────────────────────────────────
+function renderBodyMap() {
+  const layer = document.getElementById("regions-layer");
+  const lblLayer = document.getElementById("labels-layer");
+  layer.innerHTML = "";
+  lblLayer.innerHTML = "";
+
+  const regions = bodyView==="front"?FRONT:BACK;
+  const todayEntries = log[TODAY]||[];
+  const maxBySev = {};
+  todayEntries.forEach(e => {
+    if(!(e.regionId in maxBySev)||e.severity>maxBySev[e.regionId]) maxBySev[e.regionId]=e.severity;
+  });
+
+  regions.forEach(r => {
+    const sev = r.id in maxBySev ? maxBySev[r.id] : null;
+    const fill = sev!==null ? sevColor(sev) : "#1d4ed8";
+    const fillOp = sev!==null ? "0.78" : "0.35";
+    const stroke = sev!==null ? sevColor(sev) : "#162c50";
+    const sw = sev!==null ? "1.2" : "0.6";
+
+    let el;
+    if(r.type==="ellipse") {
+      el = svgEl("ellipse",{cx:r.cx,cy:r.cy,rx:r.rx,ry:r.ry,fill,stroke,"stroke-width":sw,"fill-opacity":fillOp});
+    } else {
+      el = svgEl("rect",{x:r.x,y:r.y,width:r.w,height:r.h,rx:"3",fill,stroke,"stroke-width":sw,"fill-opacity":fillOp});
+    }
+    el.classList.add("region");
+    if(sev!==null) el.classList.add("lit");
+
+    el.addEventListener("click",()=>openModal(r));
+    el.addEventListener("mouseenter",()=>{
+      document.getElementById("hover-label").textContent = r.label;
+    });
+    el.addEventListener("mouseleave",()=>{
+      document.getElementById("hover-label").textContent = "tap a region to log";
+    });
+    layer.appendChild(el);
+
+    // Severity number label
+    if(sev!==null) {
+      const [cx,cy] = rCenter(r);
+      const txt = svgEl("text",{x:cx,y:cy+3.5,"text-anchor":"middle","font-size":"7.5","font-weight":"bold","fill":"rgba(255,255,255,0.92)","font-family":"monospace"});
+      txt.textContent = sev;
+      lblLayer.appendChild(txt);
+    }
+  });
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("panel-today").style.display = tab==="today"?"block":"none";
+  document.getElementById("panel-history").style.display = tab==="history"?"block":"none";
+  document.getElementById("tab-today").classList.toggle("active", tab==="today");
+  document.getElementById("tab-history").classList.toggle("active", tab==="history");
+  if(tab==="history") renderHistory();
+}
+
+// ── View (front/back) ─────────────────────────────────────────────────────
+function setView(v) {
+  bodyView = v;
+  document.getElementById("vbtn-front").classList.toggle("active",v==="front");
+  document.getElementById("vbtn-back").classList.toggle("active",v==="back");
+  renderBodyMap();
+}
+
+// ── Render today entries ──────────────────────────────────────────────────
+function renderToday() {
+  const entries = log[TODAY]||[];
+  document.getElementById("today-count").textContent = entries.length;
+  const el = document.getElementById("today-entries");
+  if(entries.length===0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-msg">No symptoms logged yet.</div><div class="empty-sub">Tap a body region to begin.</div></div>`;
+    return;
+  }
+  el.innerHTML = entries.map(e => {
+    const c = sevColor(e.severity);
+    return `<div class="entry-card" style="border-left-color:${c}">
+      <div class="entry-top">
+        <div style="min-width:0">
+          <div class="entry-name">${e.regionLabel}</div>
+          <div class="entry-sub">${e.symptomType} · ${e.pattern}</div>
+        </div>
+        <div class="entry-badge" style="background:${c}18;border:1px solid ${c}55;color:${c}">${e.severity}/10</div>
+      </div>
+      ${e.notes?`<div class="entry-notes">${e.notes}</div>`:""}
+      <div class="entry-foot">
+        <span class="entry-time">${e.time}</span>
+        <div class="entry-actions">
+          <button class="btn-edit" onclick="startEdit('${e.id}')">Edit</button>
+          <button class="btn-del" onclick="delEntry('${e.id}')">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── Render history ────────────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById("history-entries");
+  const days = Array.from({length:14},(_,i)=>{
+    const d=new Date();d.setDate(d.getDate()-i-1);return d.toISOString().split("T")[0];
+  }).filter(d=>(log[d]||[]).length>0);
+
+  if(days.length===0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">◎</div><div class="empty-msg">No history yet.</div><div class="empty-sub">Past days appear here.</div></div>`;
+    return;
+  }
+  el.innerHTML = days.map(d => {
+    const entries = log[d]||[];
+    const peak = Math.max(...entries.map(e=>e.severity));
+    const label = new Date(d+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+    const rows = entries.map(e=>`
+      <div class="hist-row">
+        <div><div class="hist-region">${e.regionLabel}</div><div class="hist-type">${e.symptomType} · ${e.pattern}</div></div>
+        <span class="hist-sev" style="color:${sevColor(e.severity)}">${e.severity}/10</span>
+      </div>`).join("");
+    return `<div class="hist-day">
+      <button class="hist-head" onclick="toggleHistDay(this)">
+        <div style="display:flex;align-items:center">
+          <span class="hist-label">${label}</span>
+          <span class="hist-count">${entries.length} entr${entries.length!==1?"ies":"y"}</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="hist-peak" style="color:${sevColor(peak)}">peak ${peak}/10</span>
+          <span class="hist-arrow">▼</span>
+        </div>
+      </button>
+      <div class="hist-body" style="display:none">${rows}</div>
+    </div>`;
+  }).join("");
+}
+
+function toggleHistDay(btn) {
+  const body = btn.nextElementSibling;
+  const arrow = btn.querySelector(".hist-arrow");
+  const open = body.style.display==="block";
+  body.style.display = open?"none":"block";
+  arrow.textContent = open?"▼":"▲";
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────
+function openModal(region) {
+  modalRegion = region;
+  editId = null;
+  formState = {symptomType:"Pain",severity:5,pattern:"New today",notes:""};
+  showModal();
+}
+function startEdit(id) {
+  const e = (log[TODAY]||[]).find(x=>x.id===id);
+  if(!e) return;
+  modalRegion = ALL_REGIONS.find(r=>r.id===e.regionId)||{id:e.regionId,label:e.regionLabel};
+  editId = id;
+  formState = {symptomType:e.symptomType,severity:e.severity,pattern:e.pattern,notes:e.notes};
+  showModal();
+}
+function showModal() {
+  document.getElementById("modal-title").textContent = editId?"Edit Entry":"Log Symptom";
+  document.getElementById("modal-region-label").textContent = modalRegion.label;
+  document.getElementById("save-btn").textContent = editId?"Update Entry":"Save Entry";
+
+  // Severity
+  const slider = document.getElementById("sev-slider");
+  slider.value = formState.severity;
+  updateSev(formState.severity);
+
+  // Notes
+  document.getElementById("notes-input").value = formState.notes||"";
+
+  // Type pills
+  const tp = document.getElementById("type-pills");
+  tp.innerHTML = SYMPTOM_TYPES.map(t=>`<button class="pill${t===formState.symptomType?" sel-blue":""}" onclick="selectType('${t}',this)">${t}</button>`).join("");
+
+  // Pattern pills
+  const pp = document.getElementById("pattern-pills");
+  pp.innerHTML = PATTERNS.map(p=>`<button class="pill${p===formState.pattern?" sel-purple":""}" onclick="selectPattern('${p}',this)">${p}</button>`).join("");
+
+  document.getElementById("overlay").classList.add("show");
+  document.body.style.overflow="hidden";
+}
+function closeModal() {
+  document.getElementById("overlay").classList.remove("show");
+  document.body.style.overflow="";
+}
+function overlayClick(e) { if(e.target===document.getElementById("overlay")) closeModal(); }
+
+function updateSev(v) {
+  formState.severity = parseInt(v);
+  const c = sevColor(formState.severity);
+  document.getElementById("sev-display").textContent = `${v}/10 · ${sevLabel(parseInt(v))}`;
+  document.getElementById("sev-display").style.color = c;
+  const pct = (v-1)/9*100;
+  document.getElementById("sev-slider").style.background = `linear-gradient(to right,${c} ${pct}%,#162030 ${pct}%)`;
+}
+function selectType(t, el) {
+  formState.symptomType = t;
+  document.querySelectorAll("#type-pills .pill").forEach(b=>b.classList.remove("sel-blue"));
+  el.classList.add("sel-blue");
+}
+function selectPattern(p, el) {
+  formState.pattern = p;
+  document.querySelectorAll("#pattern-pills .pill").forEach(b=>b.classList.remove("sel-purple"));
+  el.classList.add("sel-purple");
+}
+
+function saveEntry() {
+  formState.notes = document.getElementById("notes-input").value.trim();
+  const time = new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  if(!log[TODAY]) log[TODAY]=[];
+  if(editId) {
+    log[TODAY] = log[TODAY].map(e=>e.id===editId?{...e,...formState}:e);
+  } else {
+    log[TODAY].push({id:`${Date.now()}`,regionId:modalRegion.id,regionLabel:modalRegion.label,bodyView,time,...formState});
+  }
+  save();
+  closeModal();
+  renderBodyMap();
+  renderToday();
+}
+
+function delEntry(id) {
+  if(!log[TODAY]) return;
+  log[TODAY] = log[TODAY].filter(e=>e.id!==id);
+  save();
+  renderBodyMap();
+  renderToday();
+}
+
+// ── Copy log ───────────────────────────────────────────────────────────────
+function copyLog() {
+  const entries = log[TODAY]||[];
+  const lines = [`SYMPTOM LOG — ${TODAY}`,"─".repeat(36),""];
+  entries.forEach(e=>{
+    lines.push(`${e.time}  ${e.regionLabel}`);
+    lines.push(`  Type: ${e.symptomType} | Severity: ${e.severity}/10 (${sevLabel(e.severity)}) | ${e.pattern}`);
+    if(e.notes) lines.push(`  Notes: ${e.notes}`);
+    lines.push("");
+  });
+  const btn = document.getElementById("copy-btn");
+  navigator.clipboard.writeText(lines.join("\n")).then(()=>{
+    btn.textContent = "✓ Copied!";
+    btn.classList.add("ok");
+    setTimeout(()=>{btn.textContent="⎘ Copy Log";btn.classList.remove("ok");},2200);
+  }).catch(()=>{
+    // Fallback for older mobile browsers
+    const ta = document.createElement("textarea");
+    ta.value = lines.join("\n");
+    ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    btn.textContent = "✓ Copied!";btn.classList.add("ok");
+    setTimeout(()=>{btn.textContent="⎘ Copy Log";btn.classList.remove("ok");},2200);
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+renderBodyMap();
+renderToday();
+</script>
+</body>
+</html>
